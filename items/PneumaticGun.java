@@ -21,9 +21,13 @@ import net.minecraftforge.event.entity.player.ArrowNockEvent;
 
 public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRechargeable{
 	/** minimum number of tick to fire a shot */
-	public static int MINIMUM_AIM_TIME = 4;
+	public static int FIRE_INTERVAL = 12;
 	
-	public static int FIRE_POWER = 16;
+	public static float FIRE_POWER = 1.0f;
+	
+	public static double DAMAGE = 2.5;
+	
+	public static String noChargeAttackSound = "random.click";
 	
 	public PneumaticGun(int itemID){
 		super(itemID);
@@ -35,21 +39,49 @@ public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRe
 	/**
      * Called when you start shooting (start aiming)
      */
-	@Override public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer)
+	@Override public ItemStack onItemRightClick(ItemStack srcItemStack, World world, EntityPlayer playerEntity)
     {
-        return super.onItemRightClick( par1ItemStack,  par2World,  par3EntityPlayer);
+		playerEntity.setItemInUse(srcItemStack, getMaxItemUseDuration(srcItemStack));
+        return srcItemStack;
     }
-	
+	 /**
+	  * Called while holding the trigger.
+	  */
+	 @Override public ItemStack onEaten (ItemStack srcItemStack, World world, EntityPlayer playerEntity) { 
+		 ArrowLooseEvent event = new ArrowLooseEvent(playerEntity, srcItemStack, 1);
+	     MinecraftForge.EVENT_BUS.post(event);
+	     if (event.isCanceled()) {
+	            return srcItemStack;
+	     }
+	       		 
+		if (playerEntity.capabilities.isCreativeMode == false) {
+			if (getCurrentCharge(srcItemStack) <= 0 || (playerEntity.inventory.hasItem(Item.arrow.itemID) == false)) {
+				// out of charge/arrows
+				playSound(noChargeAttackSound, world, playerEntity);
+				return srcItemStack;
+			}
+			// comsume ammo and power
+			playerEntity.inventory.consumeInventoryItem(Item.arrow.itemID);
+			srcItemStack.damageItem(1, playerEntity);
+		}
+
+		playSound("random.bow", world, playerEntity);
+
+		if (!world.isRemote) {
+			EntityArrow arrow = new EntityArrow(world, playerEntity, FIRE_POWER*2f);
+			arrow.setDamage(DAMAGE);
+			world.spawnEntityInWorld(arrow);
+		}
+		return srcItemStack;
+	 }
 	/**
      * called you release the trigger. Args: itemstack, world, entityplayer, itemInUseCount
      */
 	@Override  public void onPlayerStoppedUsing(ItemStack srcStack, World world, EntityPlayer player, int holdDurationRemaining)
     {
-        if((getMaxItemUseDuration(srcStack) - holdDurationRemaining) < MINIMUM_AIM_TIME){
-        	return;
-        } else {
-        	super.onPlayerStoppedUsing(srcStack, world, player, FIRE_POWER);
-        }
+        // do nothing
+        return;
+        
     }
 	
 	
@@ -59,7 +91,7 @@ public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRe
      */
 	@Override public int getMaxItemUseDuration(ItemStack par1ItemStack)
     {
-        return 72000;
+        return FIRE_INTERVAL;
     }
 
     /**
@@ -112,4 +144,12 @@ public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRe
 			return 0;
 		}
 	}
+	
+	/** plays a sound at the player location */
+    protected void playSound(String soundID, World world, EntityPlayer playerEntity){
+    	 if (!world.isRemote)
+         {
+    		 world.playSoundAtEntity(playerEntity, soundID, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+         }
+    }
 }

@@ -53,7 +53,7 @@ Other Items:
 + Basic Machine Frame
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.3.0")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.3.1")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
