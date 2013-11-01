@@ -74,7 +74,7 @@ public class StorageCellGUI  extends GuiContainer{
      
         
 	}
-	// TODO: figure out why the vertical needles aren't rendering
+	
 	private void drawPin(float centerX, float centerY, float verticalOffset,  float size, int texOffsetX, int texOffsetY, int texWidth, int texHeight){
 		float fx = 0.00390625F; // image is 256x256 pixels, so this conversion factor normalizes to a number from 0 to 1
 		float fy = 0.00390625F;
