@@ -39,21 +39,22 @@ import cyano.basicmachines.blocks.*;
 Machines: (in order of priority)
 + Iron Furnace - Buildcraft powered furnace
 + Energy Cell - Stores buildcraft energy (top+bottom=input, sides=output)
++ Charger - Recharge items that use buildcraft energy
 - Sorter - uses a filter to divert specific items
 - Light Box - Buildcraft powered torch
-More Machines: (lower priority)
-- Hydroponic Garden
 - Lamp - Oil-powered torch
-+ Charger - Recharge items that use buildcraft energy
+- Growth Chamber
+- Composter
 Tools: All have max capacity of 1024 MJ, but use different amounts of energy per action
 + Pneumatic Hammer - Buildcraft powered pickaxe
 + Pneumatic Saw - Buildcraft powered axe
 + Pneumatic Gun - Buildcraft powered bow
 Other Items:
-+ Basic Machine Frame
++ Basic Machine Frame - crafting component
++ Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.3.1")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.4.0")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -71,6 +72,8 @@ public class BasicMachines {
 		public static int blockID_ironFurnace_off;
 		public static int blockID_storageCell;
 		public static int blockID_charger;
+		public static int blockID_lightbox_on;
+		public static int blockID_lightbox_off;
 
 		public static int itemID_pneumaticMotor;
 		public static int itemID_pneumaticHammer;
@@ -81,6 +84,8 @@ public class BasicMachines {
 		public static IronFurnaceGlowingBlock block_IronFurnaceGlowing = null;
 		public static IronFurnaceBlock block_IronFurnace = null;
 		public static StorageCellBlock block_StorageCell = null;
+		public static LightBoxOffBlock block_LightBoxOff = null;
+		public static LightBoxOnBlock block_LightBoxOn = null;
 		public static ChargerBlock block_Charger = null;
 		public static PneumaticMotor item_PneumaticMotor = null;
 		public static PneumaticHammer item_PneumaticHammer = null;
@@ -126,6 +131,13 @@ public class BasicMachines {
 			blockID = config.get("Blocks","blockID_charger", getNextBlockID(++blockID)).getInt();
 			blockID_charger = blockID;
 			block_Charger = new ChargerBlock(blockID_charger);
+
+			blockID = config.get("Blocks","blockID_lightbox_off", getNextBlockID(++blockID)).getInt();
+			blockID_lightbox_off = blockID;
+			block_LightBoxOff = new LightBoxOffBlock(blockID_lightbox_off);
+			blockID = config.get("Blocks","blockID_lightbox_on", getNextBlockID(++blockID)).getInt();
+			blockID_lightbox_on = blockID;
+			block_LightBoxOn = new LightBoxOnBlock(blockID_lightbox_on);
 			
 			int itemID = blockID+256;
 			itemID = config.get("Items","itemID_pneumaticMotor", getNextItemID(++itemID)).getInt();
@@ -184,6 +196,7 @@ public class BasicMachines {
 			GameRegistry.registerTileEntity(IronFurnaceTileEntity.class, "ironFurnaceTileEntity");
 			GameRegistry.registerTileEntity(StorageCellTileEntity.class, "storageCellTileEntity");
 			GameRegistry.registerTileEntity(ChargerTileEntity.class, "chargerTileEntity");
+			GameRegistry.registerTileEntity(LightBoxTileEntity.class, "lightBoxTileEntity");
 
 			//Register the guis
 			NetworkRegistry.instance().registerGuiHandler(this, new BasicMachinesGUIHandler());
@@ -230,6 +243,18 @@ public class BasicMachines {
 			craft = new ItemStack(block_Charger);
 			GameRegistry.addRecipe(craft, "   ","pbp"," r ",'b',block_BasicMachineFrame,'p',buildcraft.BuildCraftTransport.pipePowerGold, 'r', item_PneumaticMotor);
 			
+			block_LightBoxOff.setUnlocalizedName("basicmachines.lightboxOff");
+			LanguageRegistry.addName(block_LightBoxOff, "Light Box");
+			GameRegistry.registerBlock(block_LightBoxOff,"basicmachines.lightboxOff");
+			block_LightBoxOn.setUnlocalizedName("basicmachines.lightboxOn");
+			LanguageRegistry.addName(block_LightBoxOn, "Light Box (on)");
+			GameRegistry.registerBlock(block_LightBoxOn,"basicmachines.lightboxOn");
+			craft = new ItemStack(block_LightBoxOff);
+			ItemStack charcoal = new ItemStack(net.minecraft.item.Item.coal);
+			charcoal.setItemDamage(1);
+			GameRegistry.addRecipe(craft, " p ","gbg"," c ",'b',block_BasicMachineFrame,'g',net.minecraft.block.Block.thinGlass,'p',buildcraft.BuildCraftTransport.pipePowerGold, 'c',charcoal );
+			
+			
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");
 			LanguageRegistry.addName(item_PneumaticMotor, "Pneumatic Motor");
@@ -253,7 +278,7 @@ public class BasicMachines {
 			LanguageRegistry.addName(item_PneumaticGun, "Pneumatic Gun");
 			GameRegistry.registerItem(item_PneumaticGun, "basicmachines.pneumaticGun");
 			craft = new ItemStack(item_PneumaticGun);
-			GameRegistry.addRecipe(craft, " d "," d ","im ",'i',Item.ingotIron,'d',buildcraft.BuildCraftTransport.pipeItemsDiamond, 'm', item_PneumaticMotor);
+			GameRegistry.addRecipe(craft, " i "," i ","imp",'i',Item.ingotIron,'p',buildcraft.BuildCraftTransport.pipeItemsGold, 'm', item_PneumaticMotor);
 			
 		}
 	    

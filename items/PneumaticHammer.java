@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
@@ -79,6 +80,11 @@ public class PneumaticHammer extends ItemPickaxe implements IRechargeable{
 	@SideOnly(Side.CLIENT) // best way to register icons
 	@Override public void registerIcons(IconRegister r){
 		this.itemIcon = r.registerIcon("basicmachines:pneumatic_hammer");
+	}
+	
+	/** set newly-crafted itmo to 0 charge */
+	@Override public void onCreated(ItemStack itemstack, World world, EntityPlayer player){
+		itemstack.setItemDamage(itemstack.getMaxDamage() - 1);
 	}
 
 	@Override

@@ -25,7 +25,7 @@ public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRe
 	
 	public static float FIRE_POWER = 1.0f;
 	
-	public static double DAMAGE = 2.5;
+	public static double DAMAGE = 2.0;
 	
 	public static String noChargeAttackSound = "random.click";
 	
@@ -121,6 +121,11 @@ public class PneumaticGun extends ItemBow implements cyano.basicmachines.api.IRe
 	@SideOnly(Side.CLIENT) // best way to register icons
 	@Override public void registerIcons(IconRegister r){
 		this.itemIcon = r.registerIcon("basicmachines:pneumatic_gun");
+	}
+	
+	/** set newly-crafted itmo to 0 charge */
+	@Override public void onCreated(ItemStack itemstack, World world, EntityPlayer player){
+		itemstack.setItemDamage(itemstack.getMaxDamage() - 1);
 	}
 	
 	@Override

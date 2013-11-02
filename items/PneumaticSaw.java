@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemPickaxe;
@@ -83,6 +84,11 @@ public class PneumaticSaw extends ItemAxe implements IRechargeable{
 		this.itemIcon = r.registerIcon("basicmachines:pneumatic_saw");
 	}
 
+	/** set newly-crafted itmo to 0 charge */
+	@Override public void onCreated(ItemStack itemstack, World world, EntityPlayer player){
+		itemstack.setItemDamage(itemstack.getMaxDamage() - 1);
+	}
+	
 	@Override
 	public int getCurrentCharge(ItemStack itemStack) {
 		return this.getMaxDamage() - this.getDamage(itemStack); // don't want to destroy item be going all the way to 0
