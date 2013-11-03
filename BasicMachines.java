@@ -41,7 +41,7 @@ Machines: (in order of priority)
 + Energy Cell - Stores buildcraft energy (top+bottom=input, sides=output)
 + Charger - Recharge items that use buildcraft energy
 - Sorter - uses a filter to divert specific items
-- Light Box - Buildcraft powered torch
++ Light Box - Buildcraft powered torch
 - Lamp - Oil-powered torch
 - Growth Chamber
 - Composter
@@ -54,7 +54,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.4.0")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.4.1")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -94,6 +94,8 @@ public class BasicMachines {
 		
 		public static int pneumaticEnergyCapacity = 1024;
 		public static float MJperChargeUnit = 8f;
+		
+		public static float storageCellCapacity = 5000f;
 		
 		public static Set<Integer> additionalRechargableItemIDs = new java.util.HashSet<Integer>();
 		 
@@ -159,6 +161,9 @@ public class BasicMachines {
 					"Energy use efficiency of the Charger block expressed as MJ of energy per charge unit. " +
 					"This value should be more than 1 (typically 10-ish) or rechargeable items will be " +
 					"overpowered.").getDouble(MJperChargeUnit);
+			storageCellCapacity = (float)config.get("Options", "storagecell_capacity", storageCellCapacity,
+					"This is the amount of MJ energy that a Storage Cell can store. Increase this number to " +
+					"make the game easier and decrease it to make it harder.").getDouble(MJperChargeUnit);
 			String moreChargeables = config.get("Options", "additional_Rechargeable_Items", "",
 					"Supply the itemIDs of items that should be 'recharged' by the Charger block as a " +
 					"comma-separated list. These items will have their damage value repaired at the cost of " +

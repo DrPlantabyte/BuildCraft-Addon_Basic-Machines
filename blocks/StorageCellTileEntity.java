@@ -1,6 +1,7 @@
 package cyano.basicmachines.blocks;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
+import cyano.basicmachines.BasicMachines;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,7 +21,6 @@ import buildcraft.core.utils.Utils;
 
 public class StorageCellTileEntity  extends TileEntity implements  IPowerReceptor, IPowerEmitter{
 
-	static final float maxCharge = 10000; 
 	static final float maxCurrent = 16;
 	static final float minimumChargeCurrent = 1.5f;
 	static final int GUIupdateInterval = 8;
@@ -55,12 +55,12 @@ public class StorageCellTileEntity  extends TileEntity implements  IPowerRecepto
 	/** pulls power from input buffer */
 	@Override
 	public void doWork(PowerHandler ph) {
-		float empty = maxCharge - charge;
+		float empty = BasicMachines.storageCellCapacity - charge;
 		float in = 0;
 		if(empty > maxCurrent){
 			in = ph.useEnergy(0, maxCurrent, true);
 		}else if(empty > 0){
-			in = ph.useEnergy(0, maxCharge-charge, true);
+			in = ph.useEnergy(0, BasicMachines.storageCellCapacity-charge, true);
 		}
 		charge += in;
 		inputCurrent = in;
@@ -302,7 +302,7 @@ public class StorageCellTileEntity  extends TileEntity implements  IPowerRecepto
 	}
 	
 	public static float getChargeFromMetadata(int meta){
-		return ((float)meta)*maxCharge/15f;
+		return ((float)meta)*BasicMachines.storageCellCapacity/15f;
 	}
 	
 	public float getCharge(){
@@ -355,7 +355,7 @@ public class StorageCellTileEntity  extends TileEntity implements  IPowerRecepto
 
 
 	public float getMaxCharge() {
-		return maxCharge;
+		return BasicMachines.storageCellCapacity;
 	}
 
 	public float getInputCurrentScaled(float i) {

@@ -58,7 +58,7 @@ public class StorageCellGUI  extends GuiContainer{
 		lastin = in;
 		lastout = out;
 		
-		drawPin(x+39,y+65,in,9f,176,16,16,16);
+		drawPin(x+39,y+65,in,9f,176,17,16,16);
 		drawPin(x+121,y+65,out,9f,176,0,16,16);
 		
         
