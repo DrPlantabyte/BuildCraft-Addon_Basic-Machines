@@ -61,7 +61,6 @@ public class StorageCellGUI  extends GuiContainer{
 		drawPin(x+39,y+65,in,9f,176,17,16,16);
 		drawPin(x+121,y+65,out,9f,176,0,16,16);
 		
-        
         // power display for debugging only
        // float energyStore = furnace.getEnergyStore() / furnace.getEnergyStoreMaximum();
        // drawNeedle(x+87f, y+29f, 2 * energyStore * 2.0944f - 2.0944f , 8f, 2, 2, 8, 8);
