@@ -91,20 +91,7 @@ public class OilLampBlock extends BlockContainer {
     
     @SideOnly(Side.CLIENT)
 
-    /**
-     * A randomly called display update to be able to add particles or other items for display
-     */
-    public void randomDisplayTick(World par1World, int x, int y, int z, Random par5Random)
-    {
-      //  if (this.isActive) {
-            float fx = (float)x + 0.5F;
-            float fy = (float)y + 0.5F;
-            float fz = (float)z + 0.5F;
-            float noise = 0;// par5Random.nextFloat() * 0.6F - 0.3F;
-            par1World.spawnParticle("flame", (double)(fx), (double)fy + noise, (double)(fz), 0.0D, 0.0D, 0.0D);
-           
-     //   }
-    }
+    
     /**
      * Is this block (a) opaque and (b) a full 1m cube?  This determines whether or not to render the shared face of two
      * adjacent blocks and also whether the player can attach torches, redstone wire, etc to this block.
@@ -138,11 +125,14 @@ public class OilLampBlock extends BlockContainer {
             return true;
         }
     }
+    private static boolean keepInventory = false;
     /**
      * Update which block ID the furnace is using depending on whether or not it is burning
      */
     public static void updateBlockType(boolean on, World world, int x, int y, int z)
     {
+    	
+    	keepInventory = true; // this only works because the game update loop is a single thread
         int l = world.getBlockMetadata(x, y, z);
         TileEntity tileentity = world.getBlockTileEntity(x, y, z);
 
@@ -162,6 +152,7 @@ public class OilLampBlock extends BlockContainer {
             tileentity.validate();
             world.setBlockTileEntity(x, y, z, tileentity);
         }
+        keepInventory = false;
     }
     
     /**
@@ -233,13 +224,11 @@ public class OilLampBlock extends BlockContainer {
      */
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack)
     {
-        
-        
-     // TODO: uncomment the stuff below
-        //  if (par6ItemStack.hasDisplayName())
-        //  {
-        //      ((OilLampTileEntity)par1World.getBlockTileEntity(par2, par3, par4)).setGuiDisplayName(par6ItemStack.getDisplayName());
-        //  }
+
+		if (par6ItemStack.hasDisplayName()) {
+			((OilLampTileEntity) par1World.getBlockTileEntity(par2, par3, par4))
+					.setGuiDisplayName(par6ItemStack.getDisplayName());
+		}
     }
 
     
@@ -313,7 +302,7 @@ public class OilLampBlock extends BlockContainer {
     }
 
     
-   
+    private final Random localRand = new Random();
     
     /**
      * Called on server worlds only when the block has been replaced by a different block ID, or the same block with a
@@ -322,17 +311,52 @@ public class OilLampBlock extends BlockContainer {
      */
     @Override public void breakBlock(World par1World, int par2, int par3, int par4, int par5, int par6)
     {
-        
+    	if (!keepInventory){
     	OilLampTileEntity tileentity = (OilLampTileEntity)par1World.getBlockTileEntity(par2, par3, par4);
 
             if (tileentity != null)
             {
-               
+            	for (int j1 = 0; j1 < tileentity.getSizeInventory(); ++j1)
+                {
+                    ItemStack itemstack = tileentity.getStackInSlot(j1);
+
+                    if (itemstack != null)
+                    {
+                        float f = this.localRand.nextFloat() * 0.8F + 0.1F;
+                        float f1 = this.localRand.nextFloat() * 0.8F + 0.1F;
+                        float f2 = this.localRand.nextFloat() * 0.8F + 0.1F;
+
+                        while (itemstack.stackSize > 0)
+                        {
+                            int k1 = this.localRand.nextInt(21) + 10;
+
+                            if (k1 > itemstack.stackSize)
+                            {
+                                k1 = itemstack.stackSize;
+                            }
+
+                            itemstack.stackSize -= k1;
+                            EntityItem entityitem = new EntityItem(par1World, (double)((float)par2 + f), (double)((float)par3 + f1), (double)((float)par4 + f2), new ItemStack(itemstack.itemID, k1, itemstack.getItemDamage()));
+
+                            if (itemstack.hasTagCompound())
+                            {
+                                entityitem.getEntityItem().setTagCompound((NBTTagCompound)itemstack.getTagCompound().copy());
+                            }
+
+                            float f3 = 0.05F;
+                            entityitem.motionX = (double)((float)this.localRand.nextGaussian() * f3);
+                            entityitem.motionY = (double)((float)this.localRand.nextGaussian() * f3 + 0.2F);
+                            entityitem.motionZ = (double)((float)this.localRand.nextGaussian() * f3);
+                            par1World.spawnEntityInWorld(entityitem);
+                        }
+                    }
+                }
                 par1World.func_96440_m(par2, par3, par4, par5);
            }
         
-
+    	}
         super.breakBlock(par1World, par2, par3, par4, par5, par6);
+    	
     }
     
     @SideOnly(Side.CLIENT)

@@ -18,7 +18,7 @@ public class OilLampRenderer  extends TileEntitySpecialRenderer{
 	
 	@Override
 	public void renderTileEntityAt(TileEntity tileEntity, double par2, double par4, double par6, float par8) {
-		int metadata = tileEntity.blockMetadata;
+		int metadata = tileEntity.getBlockMetadata();
 		GL11.glPushMatrix();
 		
         GL11.glTranslatef((float)par2 + 0.5F, (float)par4 + 0.75F * 1.0F, (float)par6 + 0.5F);
