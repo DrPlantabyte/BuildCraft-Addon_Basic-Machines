@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.transformers.ForgeAccessTransformer;
 import cpw.mods.fml.common.FMLLog;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -54,7 +55,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.4.1")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.0")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -74,6 +75,8 @@ public class BasicMachines {
 		public static int blockID_charger;
 		public static int blockID_lightbox_on;
 		public static int blockID_lightbox_off;
+		public static int blockID_oillamp_on;
+		public static int blockID_oillamp_off;
 
 		public static int itemID_pneumaticMotor;
 		public static int itemID_pneumaticHammer;
@@ -87,6 +90,7 @@ public class BasicMachines {
 		public static LightBoxOffBlock block_LightBoxOff = null;
 		public static LightBoxOnBlock block_LightBoxOn = null;
 		public static ChargerBlock block_Charger = null;
+		public static OilLampBlock block_OilLampOff = null;
 		public static PneumaticMotor item_PneumaticMotor = null;
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
@@ -104,6 +108,15 @@ public class BasicMachines {
 		public static ResourceLocation ironFurnaceGUILayer = null;
 		public static ResourceLocation storageCellGUILayer = null;
 		public static ResourceLocation chargerGUILayer = null;
+		public static ResourceLocation oilLampGUILayer = null;
+		
+		public static ResourceLocation material_lampmetal = null;
+		
+		
+		
+		// mod compatibility
+		public boolean mod_BCTools = false; 
+		
 		// Mark this method for receiving an FMLEvent (in this case, it's the FMLPreInitializationEvent)
 	    @EventHandler public void preInit(FMLPreInitializationEvent event)
 	    {
@@ -140,6 +153,10 @@ public class BasicMachines {
 			blockID = config.get("Blocks","blockID_lightbox_on", getNextBlockID(++blockID)).getInt();
 			blockID_lightbox_on = blockID;
 			block_LightBoxOn = new LightBoxOnBlock(blockID_lightbox_on);
+			
+			blockID = config.get("Blocks","blockID_oillamp_off", getNextBlockID(++blockID)).getInt();
+			blockID_oillamp_off = blockID;
+			block_OilLampOff = new OilLampBlock(blockID_oillamp_off);
 			
 			int itemID = blockID+256;
 			itemID = config.get("Items","itemID_pneumaticMotor", getNextItemID(++itemID)).getInt();
@@ -187,6 +204,8 @@ public class BasicMachines {
 			ironFurnaceGUILayer = new ResourceLocation("basicmachines:textures/gui/ironfurnace.png");
 			storageCellGUILayer = new ResourceLocation("basicmachines:textures/gui/storagecell.png");
 			chargerGUILayer = new ResourceLocation("basicmachines:textures/gui/charger.png");
+			oilLampGUILayer = new ResourceLocation("basicmachines:textures/gui/oillamp.png");
+			material_lampmetal = new ResourceLocation("basicmachines:textures/model/lamp_metal.png");
 	    }
 	    
 	    
@@ -202,6 +221,7 @@ public class BasicMachines {
 			GameRegistry.registerTileEntity(StorageCellTileEntity.class, "storageCellTileEntity");
 			GameRegistry.registerTileEntity(ChargerTileEntity.class, "chargerTileEntity");
 			GameRegistry.registerTileEntity(LightBoxTileEntity.class, "lightBoxTileEntity");
+			GameRegistry.registerTileEntity(OilLampTileEntity.class, "oilLampTileEntity");
 
 			//Register the guis
 			NetworkRegistry.instance().registerGuiHandler(this, new BasicMachinesGUIHandler());
@@ -240,7 +260,7 @@ public class BasicMachines {
 			LanguageRegistry.addName(block_StorageCell, "Storage Cell");
 			GameRegistry.registerBlock(block_StorageCell,"basicmachines.storageCell");
 			craft = new ItemStack(block_StorageCell);
-			GameRegistry.addRecipe(craft, " p ","pbp"," p ",'b',block_BasicMachineFrame,'p',buildcraft.BuildCraftTransport.pipePowerGold);
+			GameRegistry.addRecipe(craft, " g ","rbr"," g ",'b',block_BasicMachineFrame,'g',buildcraft.BuildCraftCore.goldGearItem, 'r', net.minecraft.block.Block.blockRedstone);
 			
 			block_Charger.setUnlocalizedName("basicmachines.charger");
 			LanguageRegistry.addName(block_Charger, "Charger");
@@ -259,6 +279,10 @@ public class BasicMachines {
 			charcoal.setItemDamage(1);
 			GameRegistry.addRecipe(craft, " p ","gbg"," c ",'b',block_BasicMachineFrame,'g',net.minecraft.block.Block.thinGlass,'p',buildcraft.BuildCraftTransport.pipePowerGold, 'c',charcoal );
 			
+			block_OilLampOff.setUnlocalizedName("basicmachines.oilLamp");
+			LanguageRegistry.addName(block_OilLampOff, "Oil Lamp");
+			GameRegistry.registerBlock(block_OilLampOff,"basicmachines.oilLamp");
+			// TODO: crafting recipe
 			
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");
@@ -285,6 +309,20 @@ public class BasicMachines {
 			craft = new ItemStack(item_PneumaticGun);
 			GameRegistry.addRecipe(craft, " i "," i ","imp",'i',Item.ingotIron,'p',buildcraft.BuildCraftTransport.pipeItemsGold, 'm', item_PneumaticMotor);
 			
+			
+			
+			// activate compatibility with BCTools mod
+			if (Loader.isModLoaded("BCTools")){
+				mod_BCTools = true;
+				 try {
+				      Class.forName("maexx.bcTools.api.IBctChargeable");
+				      // it exists on the classpath
+				   } catch(ClassNotFoundException e) {
+				      // it does not exist on the classpath
+					  FMLLog.log(Level.WARNING, e, "Mod 'basicmachines' failed to initialize API for mod 'BCTools', BCTools interoperability will not occur");
+					  mod_BCTools = false; 
+				   }
+			}
 		}
 	    
 	    

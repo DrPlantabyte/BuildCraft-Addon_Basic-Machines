@@ -62,30 +62,19 @@ public class ChargerContainer extends /*BuildCraft*/Container {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            if (slotIndex == 1) {
-            	// the output slot, send to player inventory
-                if (!this.mergeItemStack(itemstack1, 2, inventorySlots.size(), true)) {
+            if (slotIndex == 0) {
+            	// TileEntity item slot, send to player inventory
+                if (!this.mergeItemStack(itemstack1, 1, inventorySlots.size(), true)) {
                     return null;
                 }
 
                 slot.onSlotChange(itemstack1, itemstack);
-            } else if (slotIndex != 1 && slotIndex != 0) {
+            } else{
             	// player inventory, send to input slot or to toolbar
-                if (FurnaceRecipes.smelting().getSmeltingResult(itemstack1) != null) {
                 	// stick it in the input slot
                     if (!this.mergeItemStack(itemstack1, 0, 1, false)) {
                         return null;
                     }
-                } else if (slotIndex >= 2 && slotIndex < (inventorySlots.size() - 9)) {
-                	// main inventory, send to toolbar
-                    if (!this.mergeItemStack(itemstack1, inventorySlots.size() - 9, inventorySlots.size(), false)) {
-                        return null;
-                    }
-                } else if (slotIndex >= (inventorySlots.size() - 9) && slotIndex < inventorySlots.size() && !this.mergeItemStack(itemstack1, 2, (inventorySlots.size() - 9), false)) {
-                    return null;
-                }
-            } else if (!this.mergeItemStack(itemstack1, 2, inventorySlots.size(), false)) {
-                return null;
             }
 
             if (itemstack1.stackSize == 0) {

@@ -269,6 +269,11 @@ public class ChargerTileEntity extends TileEntity implements  IPowerReceptor, IS
     
     boolean canCharge(){
     	if(chargerItemSlot[0] == null) return false;
+    	if(BasicMachines.instance.mod_BCTools){
+     		if (chargerItemSlot[0].getItem() instanceof maexx.bcTools.api.IBctChargeable){
+     			return true;
+     		}
+     	}
     	return chargerItemSlot[0].getItem() instanceof IRechargeable || BasicMachines.additionalRechargableItemIDs.contains(chargerItemSlot[0].getItem().itemID);
     }
     /**
@@ -284,6 +289,13 @@ public class ChargerTileEntity extends TileEntity implements  IPowerReceptor, IS
     	if(chargerItemSlot[0].getItem() instanceof IRechargeable){
     		IRechargeable r = (IRechargeable)chargerItemSlot[0].getItem();
     		powerCharged = r.charge(chargerItemSlot[0], (int)chargePower);
+    	} else if(BasicMachines.instance.mod_BCTools){
+    		if(chargerItemSlot[0].getItem() instanceof maexx.bcTools.api.IBctChargeable){
+    			((maexx.bcTools.api.IBctChargeable)chargerItemSlot[0].getItem()).charge(chargerItemSlot[0], (int)energyInput);
+    			return (int)energyInput;
+    		} else {
+    			return 0;
+    		}
     	} else if(BasicMachines.additionalRechargableItemIDs.contains(chargerItemSlot[0].getItem().itemID)){
     		ItemStack target = chargerItemSlot[0];
     		if(chargePower > target.getItemDamage()){
@@ -334,6 +346,12 @@ public class ChargerTileEntity extends TileEntity implements  IPowerReceptor, IS
     	if(chargerItemSlot[0].getItem() instanceof IRechargeable){
     		IRechargeable r = (IRechargeable)chargerItemSlot[0].getItem();
     		return r.getCurrentCharge(chargerItemSlot[0]);
+    	} else if(BasicMachines.instance.mod_BCTools){
+    		if(chargerItemSlot[0].getItem() instanceof maexx.bcTools.api.IBctChargeable){
+    			return ((maexx.bcTools.api.IBctChargeable)chargerItemSlot[0].getItem()).getEnergyStored(chargerItemSlot[0]);
+    		} else {
+    			return 0;
+    		}
     	} else if(BasicMachines.additionalRechargableItemIDs.contains(chargerItemSlot[0].getItem().itemID)){
     		ItemStack target = chargerItemSlot[0];
     		return target.getMaxDamage() - target.getItemDamage();
@@ -348,6 +366,12 @@ public class ChargerTileEntity extends TileEntity implements  IPowerReceptor, IS
     	if(chargerItemSlot[0].getItem() instanceof IRechargeable){
     		IRechargeable r = (IRechargeable)chargerItemSlot[0].getItem();
     		return r.getMaxCharge();
+    	} else if(BasicMachines.instance.mod_BCTools){
+    		if(chargerItemSlot[0].getItem() instanceof maexx.bcTools.api.IBctChargeable){
+    			return ((maexx.bcTools.api.IBctChargeable)chargerItemSlot[0].getItem()).getMaxEnergyStored(chargerItemSlot[0]);
+    		} else {
+    			return 0;
+    		}
     	} else if(BasicMachines.additionalRechargableItemIDs.contains(chargerItemSlot[0].getItem().itemID)){
     		ItemStack target = chargerItemSlot[0];
     		return target.getMaxDamage();

@@ -48,6 +48,11 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 			if(tileEntity instanceof ChargerTileEntity){
 				return new ChargerContainer(player.inventory, (ChargerTileEntity)tileEntity);
 			}
+		case 3:
+			// oil lamp
+			if(tileEntity instanceof OilLampTileEntity){
+				return new OilLampContainer(player.inventory, (OilLampTileEntity)tileEntity);
+			}
 		
 		}
 		return null;
@@ -92,6 +97,11 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 			// storage cell
 			if(tileEntity instanceof ChargerTileEntity){
 				return new ChargerGUI(player.inventory, (ChargerTileEntity)tileEntity);
+			}
+		case 3:
+			// oil lamp
+			if(tileEntity instanceof OilLampTileEntity){
+				return new OilLampGUI(player.inventory, (OilLampTileEntity)tileEntity);
 			}
 		}
 		return null;

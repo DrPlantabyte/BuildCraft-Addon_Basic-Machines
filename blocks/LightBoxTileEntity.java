@@ -218,7 +218,7 @@ public class LightBoxTileEntity extends TileEntity implements  IPowerReceptor {
     	// get update from server
     	
 	    // sanity check!    
-    	if(pkt.data.hasKey("Temperature") && pkt.data.hasKey("CookTime") && pkt.data.hasKey("EnergyBuffer")){
+    	if( pkt.data.hasKey("EnergyBuffer")){
     		// load data
     		this.readFromNBT(pkt.data);
     	}
