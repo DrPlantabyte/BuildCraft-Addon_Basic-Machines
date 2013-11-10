@@ -121,7 +121,11 @@ public class OilLampBlock extends BlockContainer {
         if (world.isRemote) {
             return true;
         } else {
-        	// no GUI
+        	OilLampTileEntity tileentity = (OilLampTileEntity)world.getBlockTileEntity(x, y, z);
+        	if (tileentity != null)
+            {
+                player.openGui(BasicMachines.instance, 3, world, x, y, z);
+            }
             return true;
         }
     }
@@ -191,7 +195,7 @@ public class OilLampBlock extends BlockContainer {
     {
     	int m = metadata;
 
-        if (side == 1 && world.isBlockSolidOnSide(x, y - 1, z, UP   ))
+        if (side == 1 && (world.isBlockSolidOnSide(x, y - 1, z, UP) || Block.blocksList[world.getBlockId(x, y - 1, z)].canPlaceTorchOnTop(world, x, y-1, z)))
         {
             m = 5;
         }

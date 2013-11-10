@@ -57,32 +57,43 @@ public class OilLampModel  extends ModelBase{
 		// bottom
 		bottomSupport.addBox(baseWidth / -4F, blockBottomHeight, baseWidth / -4F,
 				baseWidth/2, baseLevel-blockBottomHeight, baseWidth/2, 0.0F);
-		// top
-		for(int i = blockTopHeight; i > baseLevel+baseHeight+spaceHeight; i -= 2){
-			topSupport.addBox(-0.5f, i-0.5F, -0.5f, 1, 1, 1, 0.0F);
+		// top (hanging from chain)
+		for(int i = blockTopHeight; i > baseLevel+baseHeight+spaceHeight; i--){
+			int width = 1 + (i & 1);
+			int depth = 3 - width;
+			int height = 2;
+			topSupport.addBox(-0.5F*width,i-1, -0.5F*depth, width, height, depth, 0.0F);
 		}
 		// sides
 		float topSupportY = baseLevel+baseHeight+spaceHeight+capHeight-supportFrameThickness/2F;
-		float bottomSupportY = baseLevel+baseHeight/2F-supportFrameThickness/2F;
+		float bottomSupportY = baseLevel+baseHeight/2F-supportFrameThickness;
 		posZSupport.addBox(supportFrameThickness/-2F, bottomSupportY, baseWidth / 2F, 
 				supportFrameThickness, supportFrameThickness, blockRadius-(baseWidth / 2));
 		posZSupport.addBox(supportFrameThickness/-2F, topSupportY, baseWidth / 2F, 
 				supportFrameThickness, supportFrameThickness, blockRadius-(baseWidth / 2));
+		posZSupport.addBox(supportFrameThickness/-2F, bottomSupportY, baseWidth / 2F, 
+				supportFrameThickness, (int)(topSupportY-bottomSupportY)+supportFrameThickness, supportFrameThickness);
 		
 		negZSupport.addBox(supportFrameThickness/-2F, bottomSupportY, baseWidth / -2F, 
 				supportFrameThickness, supportFrameThickness, -blockRadius+(baseWidth / 2));
 		negZSupport.addBox(supportFrameThickness/-2F, topSupportY, baseWidth / -2F, 
 				supportFrameThickness, supportFrameThickness, -blockRadius+(baseWidth / 2));
+		negZSupport.addBox(supportFrameThickness/-2F, bottomSupportY, baseWidth / -2F, 
+				supportFrameThickness, (int)(topSupportY-bottomSupportY)+supportFrameThickness, supportFrameThickness);
 
 		posXSupport.addBox(baseWidth / 2F, bottomSupportY, supportFrameThickness/-2F,
 				blockRadius-(baseWidth / 2), supportFrameThickness,  supportFrameThickness);
 		posXSupport.addBox(baseWidth / 2F, topSupportY,  supportFrameThickness/-2F,
 				blockRadius-(baseWidth / 2), supportFrameThickness, supportFrameThickness);
+		posXSupport.addBox(baseWidth / 2F, bottomSupportY, supportFrameThickness/-2F, 
+				supportFrameThickness, (int)(topSupportY-bottomSupportY)+supportFrameThickness, supportFrameThickness);
 
 		negXSupport.addBox(baseWidth / -2F, bottomSupportY, supportFrameThickness/-2F,
 				-blockRadius+(baseWidth / 2), supportFrameThickness, supportFrameThickness);
 		negXSupport.addBox(baseWidth / -2F, topSupportY,  supportFrameThickness/-2F,
 				-blockRadius+(baseWidth / 2), supportFrameThickness, supportFrameThickness);
+		negXSupport.addBox(baseWidth / -2F, bottomSupportY, supportFrameThickness/-2F, 
+				supportFrameThickness, (int)(topSupportY-bottomSupportY)+supportFrameThickness, supportFrameThickness);
 	}
 	
 	public void drawLampFrame(int metadata){

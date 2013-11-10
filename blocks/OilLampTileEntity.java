@@ -12,6 +12,8 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import buildcraft.api.fuels.IronEngineFuel;
+import buildcraft.api.fuels.IronEngineFuel.Fuel;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
@@ -19,6 +21,7 @@ import buildcraft.api.power.PowerHandler.Type;
 import buildcraft.core.DefaultProps;
 import buildcraft.core.TileBuildCraft;
 import buildcraft.core.fluids.Tank;
+import buildcraft.core.fluids.TankManager;
 import buildcraft.core.network.ISynchronizedTile;
 import buildcraft.core.network.PacketPayload;
 import buildcraft.core.network.PacketPayloadArrays;
@@ -43,7 +46,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
@@ -55,10 +60,12 @@ import net.minecraftforge.fluids.IFluidHandler;
 public class OilLampTileEntity extends TileEntity implements  ISidedInventory, IFluidHandler {
 
 	
-	public final Tank tank = new Tank("tankFuel", FluidContainerRegistry.BUCKET_VOLUME * 2, this);
-
+	public final FluidTank tank = new FluidTank( FluidContainerRegistry.BUCKET_VOLUME * 2);  
+    private Fuel currentFuel = null;
+    /** fuel burning in a lamp lasts this many times longer than when burned in a machine/furnace */ 
+    public static int lampBurnTimeFactor = 60;
 	
-	ItemStack[] inventory = new ItemStack[1];
+	ItemStack[] inventory = new ItemStack[2]; // 0 for input, 1 for output
 	int[] slotAvailability = {0};
     
     private int burnTime = 0;// how manymore ticks to burn before using more fuel
@@ -66,20 +73,101 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     private String displayName = "";
 
     
+    boolean activated = false;
+    
     public OilLampTileEntity(){
     	// TODO init
+    	
     }
     
     private boolean wasBurning = false;
-    
+    private int oldVolume  = 0;
     @Override
     public void updateEntity() {
     	if(worldObj.isRemote){
     		// client world
     		return;
     	}
+    	boolean flagChange = false;
+
+		ItemStack stackIn = inventory[0];
+		ItemStack stackOut = inventory[1];
+		if (stackIn != null) {
+			FluidStack liquid = FluidContainerRegistry
+					.getFluidForFilledItem(stackIn);
+
+			if (liquid != null
+					&& IronEngineFuel.getFuelForFluid(liquid.getFluid()) != null
+					&& (tank.getCapacity() - tank.getFluidAmount() >= FluidContainerRegistry.BUCKET_VOLUME)) {
+				// the item in the intevory slot is a fuel liquid
+				if (fill(ForgeDirection.UNKNOWN, liquid, false) == liquid.amount) {
+					fill(ForgeDirection.UNKNOWN, liquid, true);
+					setInventorySlotContents(0, Utils.consumeItem(stackIn));
+					flagChange = true;
+				}
+			}
+		} else if (stackOut != null) {
+			if (this.getFillLevel() >= FluidContainerRegistry.BUCKET_VOLUME && FluidContainerRegistry.isEmptyContainer(stackOut)) {
+				ItemStack result = FluidContainerRegistry
+						.fillFluidContainer(tank.drain(
+								FluidContainerRegistry.BUCKET_VOLUME, false),
+								stackIn);
+				if (result != null) {
+					inventory[1] = result;
+					tank.drain(FluidContainerRegistry.BUCKET_VOLUME, true);
+					flagChange = true;
+				}
+			}
+		}
+		if(oldVolume != this.getFillLevel()){
+			flagChange = true;
+			oldVolume = getFillLevel();
+		}
+		
+		// update clients to changes
+		if(flagChange){
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+		}
+	}
+    
+    public void burn() {
+        FluidStack fuel = this.tank.getFluid();
+        if (currentFuel == null && fuel != null) {
+                currentFuel = IronEngineFuel.getFuelForFluid(fuel.getFluid());
+        }
+
+		if (currentFuel == null)
+			return;
+
+		if (burnTime > 0 || fuel.amount > 0) {
+			if (burnTime > 0) {
+				burnTime--;
+			}
+			if (burnTime <= 0) {
+				if (fuel != null) {
+					if (--fuel.amount <= 0) {
+						tank.setFluid(null);
+					}
+					burnTime = lampBurnTimeFactor * currentFuel.totalBurningTime / FluidContainerRegistry.BUCKET_VOLUME;
+				} else {
+					currentFuel = null;
+					return;
+				}
+			}
+		}
+
     }
     
+    public int getFillLevel(){
+    	return tank.getFluidAmount();
+    }
+    public int getMaxFill(){
+    	return tank.getCapacity();
+    }
+    public Fluid getCurrentFluid(){
+    	if(tank.getFluid() == null)return null;
+    	return tank.getFluid().getFluid();
+    }
     
     public int getMetadata(){
     	return worldObj.getBlockMetadata(xCoord, yCoord, zCoord);
@@ -94,13 +182,21 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     	// TODO
     	return true;
     }
+    
+    public boolean isActivated(){
+    	return activated;
+    }
     /**
      * Reads a tile entity from NBT.
      */
 	@Override public void readFromNBT(NBTTagCompound par1NBTTagCompound)
     {
         super.readFromNBT(par1NBTTagCompound);
-
+        this.activated = par1NBTTagCompound.getBoolean("Active");
+        this.burnTime = par1NBTTagCompound.getShort("BurnTime");
+        NBTTagCompound tankTag = par1NBTTagCompound.getCompoundTag("Tank");
+        tank.readFromNBT(tankTag);
+        
         if (par1NBTTagCompound.hasKey("CustomName"))
         {
             this.displayName = par1NBTTagCompound.getString("CustomName");
@@ -113,6 +209,12 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 	@Override public void writeToNBT(NBTTagCompound par1NBTTagCompound)
     {
         super.writeToNBT(par1NBTTagCompound);
+        par1NBTTagCompound.setBoolean("Active", this.activated);
+        par1NBTTagCompound.setShort("BurnTime", (short)this.burnTime);
+        NBTTagCompound tankTag = new NBTTagCompound();
+        tank.writeToNBT(tankTag);
+        par1NBTTagCompound.setCompoundTag("Tank", tankTag);
+        
     }
 	
 ///// network synching
@@ -255,10 +357,14 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemstack) {
-		// only except liquid fuel sources
-		
-		// TODO Auto-generated method stub
-		return false;
+		switch(i){
+			case 0:
+				return FluidContainerRegistry.isFilledContainer(itemstack);
+			case 1:
+				return FluidContainerRegistry.isEmptyContainer(itemstack);
+			default:
+				return false;
+		}
 	}
 
 
@@ -289,45 +395,56 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 	}
 
 
-	@Override
-	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	/* ITANKCONTAINER */
+    @Override
+    public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
+            if (resource == null) {
+                    return 0;
+            }
 
+            FluidStack resourceCopy = resource.copy();
+            int totalUsed = 0;
+            
+            totalUsed += tank.fill(resourceCopy, doFill);
+            
+            return totalUsed;
+    }
 
-	@Override
-	public FluidStack drain(ForgeDirection from, FluidStack resource,
-			boolean doDrain) {
-		return null; // consume the item
-	}
+    @Override
+    public FluidStack drain(ForgeDirection from, int maxEmpty, boolean doDrain) {
+            return tank.drain(maxEmpty, doDrain);
+    }
 
+    @Override
+    public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
+            if (resource == null)
+                    return null;
+            if (!resource.isFluidEqual(tank.getFluid()))
+                    return null;
+            return drain(from, resource.amount, doDrain);
+    }
 
-	@Override
-	public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		return tank.drain(maxDrain, doDrain); // pull the fuel back out
-	}
+    private FluidTankInfo[] tankInfo = new FluidTankInfo[1];
+    @Override
+    public FluidTankInfo[] getTankInfo(ForgeDirection direction) {
+    	tankInfo[0] = tank.getInfo();
+            return tankInfo;
+    }
 
+    @Override
+    public boolean canFill(ForgeDirection from, Fluid fluid) {
+            return true;
+    }
 
-	@Override
-	public boolean canFill(ForgeDirection from, Fluid fluid) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean canDrain(ForgeDirection from, Fluid fluid) {
+            return false;
+    }
 
-
-	@Override
-	public boolean canDrain(ForgeDirection from, Fluid fluid) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-
-	@Override
-	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public int getFluidLightLevel() {
+            FluidStack tankFluid = tank.getFluid();
+            return tankFluid == null ? 0 : tankFluid.getFluid().getLuminosity(tankFluid);
+    }
 	
 }
 
