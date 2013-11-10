@@ -64,7 +64,8 @@ public class OilLampItemRenderer implements IItemRenderer{
 		
 	    FMLClientHandler.instance().getClient().renderEngine.bindTexture(BasicMachines.material_lampmetal);
 	    lampModel.drawLampFrame(6); // metadata 6 will not have any supports rendered
-		
+	    FMLClientHandler.instance().getClient().renderEngine.bindTexture(BasicMachines.material_lampglass);
+	    lampModel.drawLampGlass();
 		
 		GL11.glPopMatrix();
 	    }

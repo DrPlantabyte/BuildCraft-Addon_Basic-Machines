@@ -26,6 +26,8 @@ public class OilLampRenderer  extends TileEntitySpecialRenderer{
         
         FMLClientHandler.instance().getClient().renderEngine.bindTexture(BasicMachines.material_lampmetal);
 	    lampModel.drawLampFrame(metadata);
+	    FMLClientHandler.instance().getClient().renderEngine.bindTexture(BasicMachines.material_lampglass);
+	    lampModel.drawLampGlass();
 	    
 	    GL11.glPopMatrix();
 	}

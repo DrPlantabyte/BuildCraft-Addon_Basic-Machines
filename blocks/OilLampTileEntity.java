@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 
 import cpw.mods.fml.common.FMLLog;
@@ -90,6 +91,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     	}
     	boolean flagChange = false;
 
+    	
 		ItemStack stackIn = inventory[0];
 		ItemStack stackOut = inventory[1];
 		if (stackIn != null) {
@@ -128,6 +130,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 		if(flagChange){
 			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
+    	
 	}
     
     public void burn() {
@@ -201,6 +204,21 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
         {
             this.displayName = par1NBTTagCompound.getString("CustomName");
         }
+        if(par1NBTTagCompound.hasKey("Items")){
+        NBTTagList nbttaglist = par1NBTTagCompound.getTagList("Items");
+        this.inventory = new ItemStack[this.getSizeInventory()];
+
+        for (int i = 0; i < nbttaglist.tagCount(); ++i)
+        {
+            NBTTagCompound nbttagcompound1 = (NBTTagCompound)nbttaglist.tagAt(i);
+            byte b0 = nbttagcompound1.getByte("Slot");
+
+            if (b0 >= 0 && b0 < this.inventory.length)
+            {
+                this.inventory[b0] = ItemStack.loadItemStackFromNBT(nbttagcompound1);
+            }
+        }
+        }
     }
 
     /**
@@ -214,6 +232,25 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
         NBTTagCompound tankTag = new NBTTagCompound();
         tank.writeToNBT(tankTag);
         par1NBTTagCompound.setCompoundTag("Tank", tankTag);
+        NBTTagList nbttaglist = new NBTTagList();
+
+        for (int i = 0; i < this.inventory.length; ++i)
+        {
+            if (this.inventory[i] != null)
+            {
+                NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+                nbttagcompound1.setByte("Slot", (byte)i);
+                this.inventory[i].writeToNBT(nbttagcompound1);
+                nbttaglist.appendTag(nbttagcompound1);
+            }
+        }
+
+        par1NBTTagCompound.setTag("Items", nbttaglist);
+
+        if (this.isInvNameLocalized())
+        {
+            par1NBTTagCompound.setString("CustomName", this.displayName);
+        }
         
     }
 	
@@ -445,6 +482,9 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
             FluidStack tankFluid = tank.getFluid();
             return tankFluid == null ? 0 : tankFluid.getFluid().getLuminosity(tankFluid);
     }
+    
+    
+   
 	
 }
 

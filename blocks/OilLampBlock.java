@@ -44,8 +44,8 @@ public class OilLampBlock extends BlockContainer {
 		this.setCreativeTab(CreativeTabs.tabDecorations);
         setHardness(0.3F);
         setStepSound(soundGlassFootstep);
-        float bottom = 3/16F;
-        float top = 12/16F;
+        float bottom = 2/16F;
+        float top = 14/16F;
         setBlockBounds(0.25f,bottom,0.25f,0.75f,top,0.75f);
 	}
 	
@@ -165,14 +165,12 @@ public class OilLampBlock extends BlockContainer {
     public boolean canPlaceBlockOnSide(World world, int x, int y, int z, int side)
     {
         ForgeDirection dir = ForgeDirection.getOrientation(side);
-        return (dir == DOWN  && world.isBlockSolidOnSide(x, y + 1, z, DOWN )) ||
-        	   (dir == DOWN    && Block.blocksList[world.getBlockId(x, y + 1, z)].canPlaceTorchOnTop(world, x, y+1, z)) ||
-               (dir == UP    && world.isBlockSolidOnSide(x, y - 1, z, UP   )) ||
-               (dir == UP    && Block.blocksList[world.getBlockId(x, y - 1, z)].canPlaceTorchOnTop(world, x, y-1, z)) ||
-               (dir == NORTH && world.isBlockSolidOnSide(x, y, z + 1, NORTH)) ||
-               (dir == SOUTH && world.isBlockSolidOnSide(x, y, z - 1, SOUTH)) ||
-               (dir == WEST  && world.isBlockSolidOnSide(x + 1, y, z, WEST )) ||
-               (dir == EAST  && world.isBlockSolidOnSide(x - 1, y, z, EAST ));
+        return (dir == DOWN  && isValidSurface(world,x, y + 1, z, DOWN )) ||
+               (dir == UP    && isValidSurface(world,x, y - 1, z, UP   )) ||
+               (dir == NORTH && isValidSurface(world,x, y, z + 1, NORTH)) ||
+               (dir == SOUTH && isValidSurface(world,x, y, z - 1, SOUTH)) ||
+               (dir == WEST  && isValidSurface(world,x + 1, y, z, WEST )) ||
+               (dir == EAST  && isValidSurface(world,x - 1, y, z, EAST ));
     }
 
     /**
@@ -180,12 +178,12 @@ public class OilLampBlock extends BlockContainer {
      */
     public boolean canPlaceBlockAt(World world, int x, int y, int z)
     {
-        return world.isBlockSolidOnSide(x - 1, y, z, EAST ) ||
-               world.isBlockSolidOnSide(x + 1, y, z, WEST ) ||
-               world.isBlockSolidOnSide(x, y, z - 1, SOUTH) ||
-               world.isBlockSolidOnSide(x, y, z + 1, NORTH) ||
-               world.isBlockSolidOnSide(x, y - 1, z, UP   ) ||
-               world.isBlockSolidOnSide(x, y + 1, z, DOWN );
+        return isValidSurface(world,x - 1, y, z, EAST ) ||
+        		isValidSurface(world,x + 1, y, z, WEST ) ||
+        		isValidSurface(world,x, y, z - 1, SOUTH) ||
+        		isValidSurface(world,x, y, z + 1, NORTH) ||
+        		isValidSurface(world,x, y - 1, z, UP   ) ||
+        		isValidSurface(world,x, y + 1, z, DOWN );
     }
 
     /**
@@ -195,27 +193,27 @@ public class OilLampBlock extends BlockContainer {
     {
     	int m = metadata;
 
-        if (side == 1 && (world.isBlockSolidOnSide(x, y - 1, z, UP) || Block.blocksList[world.getBlockId(x, y - 1, z)].canPlaceTorchOnTop(world, x, y-1, z)))
+        if (side == 1 && (isValidSurface(world,x, y - 1, z, UP) ))
         {
             m = 5;
         }
 
-        if (side == 2 && world.isBlockSolidOnSide(x, y, z + 1, NORTH, true))
+        if (side == 2 && isValidSurface(world,x, y, z + 1, NORTH))
         {
             m = 4;
         }
 
-        if (side == 3 && world.isBlockSolidOnSide(x, y, z - 1, SOUTH, true))
+        if (side == 3 && isValidSurface(world,x, y, z - 1, SOUTH))
         {
             m = 3;
         }
 
-        if (side == 4 && world.isBlockSolidOnSide(x + 1, y, z, WEST, true))
+        if (side == 4 && isValidSurface(world,x + 1, y, z, WEST))
         {
             m = 2;
         }
 
-        if (side == 5 && world.isBlockSolidOnSide(x - 1, y, z, EAST, true))
+        if (side == 5 && isValidSurface(world,x - 1, y, z, EAST))
         {
             m = 1;
         }
@@ -237,43 +235,58 @@ public class OilLampBlock extends BlockContainer {
 
     
 
+    private boolean isValidSurface(World world, int x, int y, int z, ForgeDirection dir){
+    	if(world.blockExists(x, y, z) == false){
+    		return true; // unloaded chunk might be a solid block
+    	}
+    	if(world.isAirBlock(x, y, z)){
+    		return false;
+    	}
+    	if(world.isBlockSolidOnSide(x,y,z,dir)){
+    		return true;
+    	}
+    	if(Block.blocksList[world.getBlockId(x, y , z)].canPlaceTorchOnTop(world, x, y, z)){
+    		return true;
+    	}
+    	return false;
+    }
     /**
      * Lets the block know when one of its neighbor changes. Doesn't know which neighbor changed (coordinates passed are
      * their own) Args: x, y, z, neighbor blockID
      */
-    public void onNeighborBlockChange(World par1World, int par2, int par3, int par4, int par5)
+    public void onNeighborBlockChange(World world, int x, int y, int z, int neighborBlockID)
     {
-        if (this.checkIfAttachedToBlock(par1World, par2, par3, par4))
+        if (this.checkIfAttachedToBlock(world, x, y, z))
         {
-            int i1 = par1World.getBlockMetadata(par2, par3, par4) & 7;
+            int i1 = world.getBlockMetadata(x, y, z) & 7;
             boolean flag = false;
 
-            if (!par1World.isBlockSolidOnSide(par2 - 1, par3, par4, EAST) && i1 == 1)
+            if (!isValidSurface(world,x - 1, y, z, EAST) && i1 == 1)
             {
                 flag = true;
             }
 
-            if (!par1World.isBlockSolidOnSide(par2 + 1, par3, par4, WEST) && i1 == 2)
+            if (!isValidSurface(world,x + 1, y, z, WEST) && i1 == 2)
             {
                 flag = true;
             }
 
-            if (!par1World.isBlockSolidOnSide(par2, par3, par4 - 1, SOUTH) && i1 == 3)
+            if (!isValidSurface(world,x, y, z - 1, SOUTH) && i1 == 3)
             {
                 flag = true;
             }
 
-            if (!par1World.isBlockSolidOnSide(par2, par3, par4 + 1, NORTH) && i1 == 4)
+            if (!isValidSurface(world,x, y, z + 1, NORTH) && i1 == 4)
             {
                 flag = true;
             }
 
-            if (!par1World.isBlockSolidOnSide(par2, par3 - 1, par4, UP) && i1 == 5)
+            if (!isValidSurface(world,x, y - 1, z, UP) && i1 == 5)
             {
                 flag = true;
             }
             
-            if (!par1World.isBlockSolidOnSide(par2, par3 + 1, par4, DOWN) && i1 == 0)
+            if (!isValidSurface(world,x, y + 1, z,DOWN)  && i1 == 0)
             {
                 flag = true;
             }
@@ -281,8 +294,8 @@ public class OilLampBlock extends BlockContainer {
            
             if (flag)
             {
-                this.dropBlockAsItem(par1World, par2, par3, par4, 0/*par1World.getBlockMetadata(par2, par3, par4)*/, 0);
-                par1World.setBlockToAir(par2, par3, par4);
+                this.dropBlockAsItem(world, x, y, z, 0/*par1World.getBlockMetadata(par2, par3, par4)*/, 0);
+                world.setBlockToAir(x, y, z);
             }
         }
     }
@@ -383,5 +396,7 @@ public class OilLampBlock extends BlockContainer {
         return false;
     }
 
+    
+   
    
 }

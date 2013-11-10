@@ -91,6 +91,7 @@ public class BasicMachines {
 		public static LightBoxOnBlock block_LightBoxOn = null;
 		public static ChargerBlock block_Charger = null;
 		public static OilLampBlock block_OilLampOff = null;
+		public static OilLampBlockLit block_OilLampOn = null;
 		public static PneumaticMotor item_PneumaticMotor = null;
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
@@ -109,8 +110,9 @@ public class BasicMachines {
 		public static ResourceLocation storageCellGUILayer = null;
 		public static ResourceLocation chargerGUILayer = null;
 		public static ResourceLocation oilLampGUILayer = null;
-		
+
 		public static ResourceLocation material_lampmetal = null;
+		public static ResourceLocation material_lampglass = null;
 		
 		
 		
@@ -157,6 +159,9 @@ public class BasicMachines {
 			blockID = config.get("Blocks","blockID_oillamp_off", getNextBlockID(++blockID)).getInt();
 			blockID_oillamp_off = blockID;
 			block_OilLampOff = new OilLampBlock(blockID_oillamp_off);
+			blockID = config.get("Blocks","blockID_oillamp_on", getNextBlockID(++blockID)).getInt();
+			blockID_oillamp_on = blockID;
+			block_OilLampOn = new OilLampBlockLit(blockID_oillamp_on);
 			
 			int itemID = blockID+256;
 			itemID = config.get("Items","itemID_pneumaticMotor", getNextItemID(++itemID)).getInt();
@@ -206,6 +211,7 @@ public class BasicMachines {
 			chargerGUILayer = new ResourceLocation("basicmachines:textures/gui/charger.png");
 			oilLampGUILayer = new ResourceLocation("basicmachines:textures/gui/oillamp.png");
 			material_lampmetal = new ResourceLocation("basicmachines:textures/model/lamp_metal.png");
+			material_lampglass = new ResourceLocation("basicmachines:textures/model/lamp_glass.png");
 	    }
 	    
 	    
@@ -282,6 +288,9 @@ public class BasicMachines {
 			block_OilLampOff.setUnlocalizedName("basicmachines.oilLamp");
 			LanguageRegistry.addName(block_OilLampOff, "Oil Lamp");
 			GameRegistry.registerBlock(block_OilLampOff,"basicmachines.oilLamp");
+			block_OilLampOn.setUnlocalizedName("basicmachines.oilLampActive");
+			LanguageRegistry.addName(block_OilLampOn, "Oil Lamp (lit)");
+			GameRegistry.registerBlock(block_OilLampOn,"basicmachines.oilLampActive");
 			// TODO: crafting recipe
 			
 			
