@@ -325,7 +325,7 @@ public class BasicMachines {
 			block_OilLampOn.setUnlocalizedName("basicmachines.oilLampActive");
 			LanguageRegistry.addName(block_OilLampOn, "Oil Lamp (lit)");
 			GameRegistry.registerBlock(block_OilLampOn,"basicmachines.oilLampActive");
-			// TODO: crafting recipe
+			// TODO: crafting recipe for Oil Lamp
 			
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");

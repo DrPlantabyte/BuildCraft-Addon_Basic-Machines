@@ -42,10 +42,16 @@ public class OilLampGUI  extends GuiContainer{
         int fill = 52 * tile.getFillLevel() / tile.getMaxFill();
         this.mc.renderEngine.bindTexture(BLOCK_TEXTURES);
         Fluid fluid = tile.getCurrentFluid();
-        if(fluid != null){this.drawTexturedModelRectFromIcon(x+109, y+14+(52-fill), fluid.getIcon(), 16, fill);}
+        if(fluid != null){
+        	// draw whole box filled, then redraw the background over it to cover part of the fluid texture
+        	this.drawTexturedModelRectFromIcon(x+109, y+14+(0), fluid.getIcon(), 16, 26);
+        	this.drawTexturedModelRectFromIcon(x+109, y+14+(26), fluid.getIcon(), 16, 26);
+        }
+        this.mc.renderEngine.bindTexture(BasicMachines.oilLampGUILayer); 
+    	this.drawTexturedModalRect(x+109, y+14, 109, 14, 16, 52-fill);
 		
 		// draw tick marks
-		this.mc.renderEngine.bindTexture(BasicMachines.oilLampGUILayer); 
+	//	this.mc.renderEngine.bindTexture(BasicMachines.oilLampGUILayer); 
         drawTexturedModalRect(x+109, y+14, 176, 36, 16, 52);
         
         
