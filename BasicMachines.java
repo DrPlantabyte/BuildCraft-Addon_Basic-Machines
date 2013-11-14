@@ -1,37 +1,51 @@
 package cyano.basicmachines;
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
 import net.minecraft.block.Block;
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraftforge.common.Configuration;
-import net.minecraftforge.transformers.ForgeAccessTransformer;
+import net.minecraftforge.fluids.Fluid;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import cyano.basicmachines.blocks.BasicMachineFrame;
+import cyano.basicmachines.blocks.ChargerBlock;
+import cyano.basicmachines.blocks.ChargerTileEntity;
+import cyano.basicmachines.blocks.IronFurnaceBlock;
+import cyano.basicmachines.blocks.IronFurnaceGlowingBlock;
+import cyano.basicmachines.blocks.IronFurnaceTileEntity;
+import cyano.basicmachines.blocks.LightBoxOffBlock;
+import cyano.basicmachines.blocks.LightBoxOnBlock;
+import cyano.basicmachines.blocks.LightBoxTileEntity;
+import cyano.basicmachines.blocks.OilLampBlock;
+import cyano.basicmachines.blocks.OilLampBlockLit;
+import cyano.basicmachines.blocks.OilLampTileEntity;
+import cyano.basicmachines.blocks.StorageCellBlock;
+import cyano.basicmachines.blocks.StorageCellTileEntity;
 import cyano.basicmachines.client.ClientProxy;
 import cyano.basicmachines.graphics.BasicMachinesGUIHandler;
-import cyano.basicmachines.items.*;
-import cyano.basicmachines.blocks.*;
+import cyano.basicmachines.items.OilCan;
+import cyano.basicmachines.items.OilCanEmpty;
+import cyano.basicmachines.items.PneumaticGun;
+import cyano.basicmachines.items.PneumaticHammer;
+import cyano.basicmachines.items.PneumaticMotor;
+import cyano.basicmachines.items.PneumaticSaw;
 
 
 /*
@@ -82,6 +96,11 @@ public class BasicMachines {
 		public static int itemID_pneumaticHammer;
 		public static int itemID_pneumaticSaw;
 		public static int itemID_pneumaticGun;
+		public static int itemID_oilcan_empty;
+		public static int itemID_oilcan_water;
+		public static int itemID_oilcan_lava;
+		public static int itemID_oilcan_oil;
+		public static int itemID_oilcan_fuel;
 		
 		public static BasicMachineFrame block_BasicMachineFrame = null;
 		public static IronFurnaceGlowingBlock block_IronFurnaceGlowing = null;
@@ -96,6 +115,8 @@ public class BasicMachines {
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
 		public static PneumaticGun item_PneumaticGun = null;
+		public static OilCanEmpty item_OilCan_empty = null;
+		public static Map<Fluid, OilCan> oilCanItems = new HashMap<Fluid, OilCan>();
 		
 		public static int pneumaticEnergyCapacity = 1024;
 		public static float MJperChargeUnit = 8f;
@@ -177,6 +198,19 @@ public class BasicMachines {
 			itemID = config.get("Items","itemID_pneumaticGun", getNextItemID(++itemID)).getInt();
 			itemID_pneumaticGun = itemID;
 			item_PneumaticGun = new PneumaticGun(itemID_pneumaticGun);
+			
+			// oil cans
+			itemID = config.get("Items","itemID_oilcan_empty", getNextItemID(++itemID)).getInt();
+			itemID_oilcan_empty = itemID;
+			itemID = config.get("Items","itemID_oilcan_lava", getNextItemID(++itemID)).getInt();
+			itemID_oilcan_lava = itemID;
+			itemID = config.get("Items","itemID_oilcan_water", getNextItemID(++itemID)).getInt();
+			itemID_oilcan_water = itemID;
+			itemID = config.get("Items","itemID_oilcan_oil", getNextItemID(++itemID)).getInt();
+			itemID_oilcan_oil = itemID;
+			itemID = config.get("Items","itemID_oilcan_fuel", getNextItemID(++itemID)).getInt();
+			itemID_oilcan_fuel = itemID;
+			item_OilCan_empty = new OilCanEmpty(itemID_oilcan_empty);
 			
 			
 			MJperChargeUnit = (float)config.get("Options", "MJ_per_charge_unit", MJperChargeUnit,
@@ -319,6 +353,24 @@ public class BasicMachines {
 			GameRegistry.addRecipe(craft, " i "," i ","imp",'i',Item.ingotIron,'p',buildcraft.BuildCraftTransport.pipeItemsGold, 'm', item_PneumaticMotor);
 			
 			
+			item_OilCan_empty.setUnlocalizedName("basicmachines.emptyOilCan");
+			LanguageRegistry.addName(item_OilCan_empty, "Oil Can (Empty)");
+			GameRegistry.registerItem(item_OilCan_empty, "basicmachines.emptyOilCan");
+			craft = new ItemStack(item_OilCan_empty);
+			GameRegistry.addRecipe(craft, "gi","b ",'i',Item.ingotIron,'g',buildcraft.BuildCraftCore.woodenGearItem, 'b', Item.bucketEmpty);
+			GameRegistry.addRecipe(craft, "ig"," b",'i',Item.ingotIron,'g',buildcraft.BuildCraftCore.woodenGearItem, 'b', Item.bucketEmpty);
+			
+			
+			// liquids
+			// fluids with BuildCraft installed:
+			// 		water, lava, fuel, oil
+			Map<String, Fluid> fluids = net.minecraftforge.fluids.FluidRegistry.getRegisteredFluids();
+			addOilCan(itemID_oilcan_water,"water",fluids);
+			addOilCan(itemID_oilcan_lava,"lava",fluids);
+			addOilCan(itemID_oilcan_fuel,"fuel",fluids);
+			addOilCan(itemID_oilcan_oil,"oil",fluids);
+			
+			
 			
 			// activate compatibility with BCTools mod
 			if (Loader.isModLoaded("BCTools")){
@@ -334,6 +386,13 @@ public class BasicMachines {
 			}
 		}
 	    
+	    private static void addOilCan(int itemID, String fluid, Map<String, Fluid> fluids){
+	    	OilCan oc = new OilCan(itemID,fluids.get(fluid),"basicmachines:oilcan_"+fluid);
+			oc.setUnlocalizedName("basicmachines.oilCan_"+fluid);
+			LanguageRegistry.addName(oc, "Oil Can ("+fluid+")");
+			GameRegistry.registerItem(oc, "basicmachines.oilCan_"+fluid);
+			oilCanItems.put(fluids.get(fluid), oc);
+	    }
 	    
 	    private int getNextItemID(int startingID){
 			int i = startingID;
