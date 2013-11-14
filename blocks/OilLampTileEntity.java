@@ -109,11 +109,11 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 				}
 			}
 		} else if (stackOut != null) {
-			if (this.getFillLevel() >= FluidContainerRegistry.BUCKET_VOLUME && FluidContainerRegistry.isEmptyContainer(stackOut)) {
+			if (FluidContainerRegistry.isEmptyContainer(stackOut) && this.getFillLevel() >= FluidContainerRegistry.BUCKET_VOLUME) {
 				ItemStack result = FluidContainerRegistry
 						.fillFluidContainer(tank.drain(
 								FluidContainerRegistry.BUCKET_VOLUME, false),
-								stackIn);
+								stackOut);
 				if (result != null) {
 					inventory[1] = result;
 					tank.drain(FluidContainerRegistry.BUCKET_VOLUME, true);
@@ -164,6 +164,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     public int getFillLevel(){
     	return tank.getFluidAmount();
     }
+    
     public int getMaxFill(){
     	return tank.getCapacity();
     }
@@ -199,6 +200,10 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
         this.burnTime = par1NBTTagCompound.getShort("BurnTime");
         NBTTagCompound tankTag = par1NBTTagCompound.getCompoundTag("Tank");
         tank.readFromNBT(tankTag);
+        if(tankTag.hasKey("Empty")){
+        	// empty the tank if NBT says its empty (not default behavior got Tank.readFromNBT(...) )
+        	tank.setFluid(null); 
+        }
         
         if (par1NBTTagCompound.hasKey("CustomName"))
         {

@@ -60,7 +60,7 @@ public class OilLampGUI  extends GuiContainer{
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int param1, int param2) {
-		String title = LanguageRegistry.instance().getStringLocalization("basicmachines.charger");
+		String title = LanguageRegistry.instance().getStringLocalization("basicmachines.oilLamp");
         fontRenderer.drawString(title, 8, 6, 0x404040);
      
         
