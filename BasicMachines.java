@@ -388,13 +388,22 @@ public class BasicMachines {
 				   }
 			}
 		}
-	    
-	    private static void addOilCan(int itemID, String fluid, Map<String, Fluid> fluids){
-	    	OilCan oc = new OilCan(itemID,fluids.get(fluid),"basicmachines:oilcan_"+fluid);
-			oc.setUnlocalizedName("basicmachines.oilCan_"+fluid);
+	    /**
+	     * Adds a new Oil Can item for a given fluid.
+	     * @param itemID
+	     * @param modID
+	     * @param fluid
+	     * @param fluids
+	     */
+	    public static void addOilCan(int itemID, String modID, String fluid, Map<String, Fluid> fluids){
+	    	OilCan oc = new OilCan(itemID,fluids.get(fluid),modID+":oilcan_"+fluid);
+			oc.setUnlocalizedName(modID+".oilCan_"+fluid);
 			LanguageRegistry.addName(oc, "Oil Can ("+fluid+")");
-			GameRegistry.registerItem(oc, "basicmachines.oilCan_"+fluid);
+			GameRegistry.registerItem(oc, modID+".oilCan_"+fluid);
 			oilCanItems.put(fluids.get(fluid), oc);
+	    }
+	    public static void addOilCan(int itemID, String fluid, Map<String, Fluid> fluids){
+	    	addOilCan(itemID,"basicmachines",fluid,fluids);
 	    }
 	    
 	    private int getNextItemID(int startingID){
