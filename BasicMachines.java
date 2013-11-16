@@ -70,7 +70,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.0")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.1")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -92,6 +92,8 @@ public class BasicMachines {
 		public static int blockID_lightbox_off;
 		public static int blockID_oillamp_on;
 		public static int blockID_oillamp_off;
+		public static int blockID_growthChamber;
+		public static int blockID_composter;
 
 		public static int itemID_pneumaticMotor;
 		public static int itemID_pneumaticHammer;
@@ -112,6 +114,8 @@ public class BasicMachines {
 		public static ChargerBlock block_Charger = null;
 		public static OilLampBlock block_OilLampOff = null;
 		public static OilLampBlockLit block_OilLampOn = null;
+	//	public static GrowthChamberBlock block_GrowthChamber = null;
+	//	public static ComposterBlock block_Composter = null;
 		public static PneumaticMotor item_PneumaticMotor = null;
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
@@ -132,6 +136,8 @@ public class BasicMachines {
 		public static ResourceLocation storageCellGUILayer = null;
 		public static ResourceLocation chargerGUILayer = null;
 		public static ResourceLocation oilLampGUILayer = null;
+		public static ResourceLocation growthChamberGUILayer = null;
+		public static ResourceLocation composterGUILayer = null;
 
 		public static ResourceLocation material_lampmetal = null;
 		public static ResourceLocation material_lampglass = null;
@@ -184,6 +190,15 @@ public class BasicMachines {
 			blockID = config.get("Blocks","blockID_oillamp_on", getNextBlockID(++blockID)).getInt();
 			blockID_oillamp_on = blockID;
 			block_OilLampOn = new OilLampBlockLit(blockID_oillamp_on);
+			
+
+			blockID = config.get("Blocks","blockID_growthChamber", getNextBlockID(++blockID)).getInt();
+			blockID_growthChamber = blockID;
+		//	block_GrowthChamber = new GrowthChamberBlock(blockID_growthChamber);
+			
+			blockID = config.get("Blocks","blockID_composter", getNextBlockID(++blockID)).getInt();
+			blockID_composter = blockID;
+		//	block_Composter = new ComposterBlock(blockID_composter);
 			
 			int itemID = blockID+256;
 			itemID = config.get("Items","itemID_pneumaticMotor", getNextItemID(++itemID)).getInt();

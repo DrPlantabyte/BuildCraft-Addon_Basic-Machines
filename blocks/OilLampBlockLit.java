@@ -41,6 +41,7 @@ public class OilLampBlockLit extends OilLampBlock {
 	public OilLampBlockLit(int blockID){
 		super(blockID);
         setLightValue(1f);
+		this.setCreativeTab(null);
 	}
 	
 	
