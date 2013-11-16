@@ -41,6 +41,9 @@ public class OilCanEmpty extends Item {
     	//	FMLLog.fine(this.getClass().getCanonicalName()+": "+"IFluidHandler found");
     		IFluidHandler fh = (IFluidHandler)te;
     		FluidTankInfo[] tanks = fh.getTankInfo(dir);
+    		if(tanks == null){
+    			return false;
+    		}
     		tankScan:{
 	    		for(int i = 0; i < tanks.length; i++){
 	    //			FMLLog.fine(this.getClass().getCanonicalName()+": "+"tank["+i+"] contains "+(tanks[i].fluid == null ? null : (tanks[i].fluid.getFluid() == null ? null : tanks[i].fluid.getFluid().getName())));
