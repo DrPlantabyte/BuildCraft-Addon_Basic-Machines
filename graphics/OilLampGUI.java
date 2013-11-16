@@ -72,14 +72,14 @@ public class OilLampGUI  extends GuiContainer{
      */
 	@Override protected void mouseClicked(int x, int y, int button){
 		super.mouseClicked(x, y, button);
-FMLLog.fine(this.getClass().getCanonicalName() + ": "+"Mouse clicked in GUI: button"+button+" at ("+x+","+y+")");
+//FMLLog.fine(this.getClass().getCanonicalName() + ": "+"Mouse clicked in GUI: button"+button+" at ("+x+","+y+")");
 		if(button == 0){
 			// primary button click
 			int dx = this.guiLeft;
 			int dy = this.guiTop;
 			x -= dx;
 			y -= dy;
-FMLLog.fine(this.getClass().getCanonicalName() + ": "+"Recalculated click = button"+button+" at ("+x+","+y+")");
+//FMLLog.fine(this.getClass().getCanonicalName() + ": "+"Recalculated click = button"+button+" at ("+x+","+y+")");
 			// check if clicking on the flame button
 			if(y < 71 && y > 54 && x > 79 && x < 96){
 				toggleFlameButtonClicked();

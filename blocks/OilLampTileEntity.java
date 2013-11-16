@@ -149,7 +149,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 		if (fuel.amount > 0) {
 			Fuel currentFuel = IronEngineFuel.getFuelForFluid(fuel.getFluid());
 			if(currentFuel == null){return;}
-FMLLog.fine(this.getClass().getCanonicalName() + ": "+"out of burn time, going to throw some "+fuel.getFluid().getName()+" onto the fire #"+currentFuel);
+//FMLLog.fine(this.getClass().getCanonicalName() + ": "+"out of burn time, going to throw some "+fuel.getFluid().getName()+" onto the fire #"+currentFuel);
 			if (fuel != null && fuel.amount > 0) {
 				if (--fuel.amount <= 0) {
 					tank.setFluid(null);
