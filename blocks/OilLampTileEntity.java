@@ -62,14 +62,13 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 
 	
 	public final FluidTank tank = new FluidTank( FluidContainerRegistry.BUCKET_VOLUME * 2);  
-    private Fuel currentFuel = null;
     /** fuel burning in a lamp lasts this many times longer than when burned in a machine/furnace */ 
-    public static int lampBurnTimeFactor = 60;
+    public static int lampBurnTimeFactor = 16;
 	
 	ItemStack[] inventory = new ItemStack[2]; // 0 for input, 1 for output
 	int[] slotAvailability = {0};
     
-    private int burnTime = 0;// how manymore ticks to burn before using more fuel
+    private int burnTime = 0;// how many more ticks to burn before using more fuel
     
     private String displayName = "";
 
@@ -77,8 +76,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     boolean activated = false;
     
     public OilLampTileEntity(){
-    	// TODO init
-    	
+    	// nothing to init
     }
     
     private boolean wasBurning = false;
@@ -89,8 +87,8 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     		// client world
     		return;
     	}
+    	
     	boolean flagChange = false;
-
     	
 		ItemStack stackIn = inventory[0];
 		ItemStack stackOut = inventory[1];
@@ -121,6 +119,13 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 				}
 			}
 		}
+		
+		burn();
+		if(isBurning() != wasBurning){
+			OilLampBlock.updateBlockType(isBurning(), worldObj, xCoord, yCoord, zCoord);
+			wasBurning=isBurning();
+		}
+		
 		if(oldVolume != this.getFillLevel()){
 			flagChange = true;
 			oldVolume = getFillLevel();
@@ -134,29 +139,29 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 	}
     
     public void burn() {
-        FluidStack fuel = this.tank.getFluid();
-        if (currentFuel == null && fuel != null) {
-                currentFuel = IronEngineFuel.getFuelForFluid(fuel.getFluid());
-        }
-
-		if (currentFuel == null)
+    	if(activated == false){return;}
+    	if (--burnTime > 0) {
 			return;
-
-		if (burnTime > 0 || fuel.amount > 0) {
-			if (burnTime > 0) {
-				burnTime--;
-			}
-			if (burnTime <= 0) {
-				if (fuel != null) {
-					if (--fuel.amount <= 0) {
-						tank.setFluid(null);
-					}
-					burnTime = lampBurnTimeFactor * currentFuel.totalBurningTime / FluidContainerRegistry.BUCKET_VOLUME;
-				} else {
-					currentFuel = null;
-					return;
+		}
+    	
+    	FluidStack fuel = this.tank.getFluid();
+    	if(fuel == null){return;}
+		if (fuel.amount > 0) {
+			Fuel currentFuel = IronEngineFuel.getFuelForFluid(fuel.getFluid());
+			if(currentFuel == null){return;}
+FMLLog.fine(this.getClass().getCanonicalName() + ": "+"out of burn time, going to throw some "+fuel.getFluid().getName()+" onto the fire #"+currentFuel);
+			if (fuel != null && fuel.amount > 0) {
+				if (--fuel.amount <= 0) {
+					tank.setFluid(null);
 				}
+				burnTime = lampBurnTimeFactor * currentFuel.totalBurningTime
+						/ FluidContainerRegistry.BUCKET_VOLUME;
+FMLLog.fine(this.getClass().getCanonicalName() + ": "+ " consuming 1 " + fuel.getFluid().getName() + " ("+ currentFuel.totalBurningTime+ " ticks per unit) to burn for another " + burnTime+ " ticks");
+			} else {
+				currentFuel = null;
+				return;
 			}
+
 		}
 
     }
@@ -182,13 +187,20 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     	return this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord) != this ? false : par1EntityPlayer.getDistanceSq((double)this.xCoord + 0.5D, (double)this.yCoord + 0.5D, (double)this.zCoord + 0.5D) <= 64.0D;
     }
     
-    private boolean isBurning(){
-    	// TODO
-    	return true;
+    public boolean isBurning(){
+    	return activated && burnTime > 0; 
     }
     
     public boolean isActivated(){
     	return activated;
+    }
+    
+    public void setActivated(boolean set){
+    	this.activated = set;
+    	if(worldObj.isRemote){
+    		// send update from client to server
+    		
+    	}
     }
     /**
      * Reads a tile entity from NBT.
@@ -260,17 +272,6 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
     }
 	
 ///// network synching
-	/** 
-	 * update heat and cook time
-	 */
-	protected void sendChangeToClients(){
-		if(worldObj.isRemote == true){
-			// client invokation (shouldn't happen)
-			return; 
-		}
-	    
-	    worldObj.markBlockForUpdate(xCoord, yCoord, zCoord); // alternatively, use PacketDispatcher.sendPacketToAllPlayerAround(Packet, x, y, z, range);
-	}
 	
 	@Override
 	public Packet getDescriptionPacket()
@@ -289,15 +290,12 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
      * @param net The NetworkManager the packet originated from
      * @param pkt The data packet
      */
-    public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
+    @Override public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
     {
     	// get update from server
-    	
-	    // sanity check!    
-    //	if( pkt.data.hasKey("EnergyBuffer")){
-    		// load data
-    		this.readFromNBT(pkt.data);
-    //	}
+    	NBTTagCompound nbt = pkt.data;
+    	this.readFromNBT(nbt);
+    
 	}
 
 

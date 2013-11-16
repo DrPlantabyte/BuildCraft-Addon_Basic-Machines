@@ -24,6 +24,7 @@ import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import cpw.mods.fml.relauncher.Side;
 import cyano.basicmachines.blocks.BasicMachineFrame;
 import cyano.basicmachines.blocks.ChargerBlock;
 import cyano.basicmachines.blocks.ChargerTileEntity;
@@ -265,7 +266,8 @@ public class BasicMachines {
 
 			//Register the guis
 			NetworkRegistry.instance().registerGuiHandler(this, new BasicMachinesGUIHandler());
-			
+			NetworkRegistry.instance().registerChannel(new PacketHandler(), "BasicMachines", Side.SERVER);
+		
 	
 			// language registry and crafting recipes 
 			block_BasicMachineFrame.setUnlocalizedName("basicmachines.basicMachineFrame");
@@ -325,7 +327,8 @@ public class BasicMachines {
 			block_OilLampOn.setUnlocalizedName("basicmachines.oilLampActive");
 			LanguageRegistry.addName(block_OilLampOn, "Oil Lamp (lit)");
 			GameRegistry.registerBlock(block_OilLampOn,"basicmachines.oilLampActive");
-			// TODO: crafting recipe for Oil Lamp
+			craft = new ItemStack(block_OilLampOff);
+			GameRegistry.addRecipe(craft, " g ","lfl"," b ",'f',block_BasicMachineFrame,'b',Item.bucketEmpty, 'g',Item.flintAndSteel,'l',Block.thinGlass);
 			
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");
