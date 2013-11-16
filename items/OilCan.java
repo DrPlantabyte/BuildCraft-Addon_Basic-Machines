@@ -36,7 +36,11 @@ public class OilCan extends Item{
 	@Override public boolean isRepairable(){
 		return false;
 	}
-	
+
+    @Override public boolean getIsRepairable(ItemStack a, ItemStack b){
+    	return false;
+    }
+    
 	 /**
      * Callback for item usage. If the item does something special on right clicking, he will have one of those. Return
      * True if something happen and false if it don't. This is for ITEMS, not BLOCKS

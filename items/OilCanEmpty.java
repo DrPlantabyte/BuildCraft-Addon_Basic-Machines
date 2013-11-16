@@ -87,7 +87,9 @@ public class OilCanEmpty extends Item {
     	}
         return false;
     }
-    
+    @Override public boolean getIsRepairable(ItemStack a, ItemStack b){
+    	return false;
+    }
     @Override public boolean isRepairable(){
 		return false;
 	}
