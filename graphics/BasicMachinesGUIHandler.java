@@ -53,6 +53,18 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 			if(tileEntity instanceof OilLampTileEntity){
 				return new OilLampContainer(player.inventory, (OilLampTileEntity)tileEntity);
 			}
+		case 4:
+			// growth chamber
+			if(tileEntity instanceof GrowthChamberTileEntity){
+				// TODO 
+			//	return new GrowthChamberContainer(player.inventory, (GrowthChamberTileEntity)tileEntity);
+			}
+		case 5:
+			// composter
+			if(tileEntity instanceof ComposterTileEntity){
+				// TODO 
+			//	return new ComposterContainer(player.inventory, (ComposterTileEntity)tileEntity);
+			}
 		
 		}
 		return null;
@@ -102,6 +114,18 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 			// oil lamp
 			if(tileEntity instanceof OilLampTileEntity){
 				return new OilLampGUI(player.inventory, (OilLampTileEntity)tileEntity);
+			}
+		case 4:
+			// growth chamber
+			if(tileEntity instanceof GrowthChamberTileEntity){
+				// TODO 
+			//	return new GrowthChamberGUI(player.inventory, (GrowthChamberTileEntity)tileEntity);
+			}
+		case 5:
+			// composter
+			if(tileEntity instanceof ComposterTileEntity){
+				// TODO 
+			//	return new ComposterGUI(player.inventory, (ComposterTileEntity)tileEntity);
 			}
 		}
 		return null;

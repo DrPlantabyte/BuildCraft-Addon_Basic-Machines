@@ -189,7 +189,7 @@ public class IronFurnaceTileEntity extends TileEntity implements  IPowerReceptor
     @Override
 	 public String getInvName()
     {
-        return this.isInvNameLocalized() ? displayName : "container.ironfurnace";
+        return this.isInvNameLocalized() ? displayName : "basicmachines.ironFurnace";
     }
     
     /**

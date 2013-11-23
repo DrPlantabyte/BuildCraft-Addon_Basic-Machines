@@ -25,28 +25,10 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
-import cyano.basicmachines.blocks.BasicMachineFrame;
-import cyano.basicmachines.blocks.ChargerBlock;
-import cyano.basicmachines.blocks.ChargerTileEntity;
-import cyano.basicmachines.blocks.IronFurnaceBlock;
-import cyano.basicmachines.blocks.IronFurnaceGlowingBlock;
-import cyano.basicmachines.blocks.IronFurnaceTileEntity;
-import cyano.basicmachines.blocks.LightBoxOffBlock;
-import cyano.basicmachines.blocks.LightBoxOnBlock;
-import cyano.basicmachines.blocks.LightBoxTileEntity;
-import cyano.basicmachines.blocks.OilLampBlock;
-import cyano.basicmachines.blocks.OilLampBlockLit;
-import cyano.basicmachines.blocks.OilLampTileEntity;
-import cyano.basicmachines.blocks.StorageCellBlock;
-import cyano.basicmachines.blocks.StorageCellTileEntity;
+import cyano.basicmachines.blocks.*;
 import cyano.basicmachines.client.ClientProxy;
 import cyano.basicmachines.graphics.BasicMachinesGUIHandler;
-import cyano.basicmachines.items.OilCan;
-import cyano.basicmachines.items.OilCanEmpty;
-import cyano.basicmachines.items.PneumaticGun;
-import cyano.basicmachines.items.PneumaticHammer;
-import cyano.basicmachines.items.PneumaticMotor;
-import cyano.basicmachines.items.PneumaticSaw;
+import cyano.basicmachines.items.*;
 
 
 /*
@@ -70,7 +52,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.1")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.2")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -114,8 +96,8 @@ public class BasicMachines {
 		public static ChargerBlock block_Charger = null;
 		public static OilLampBlock block_OilLampOff = null;
 		public static OilLampBlockLit block_OilLampOn = null;
-	//	public static GrowthChamberBlock block_GrowthChamber = null;
-	//	public static ComposterBlock block_Composter = null;
+		public static GrowthChamberBlock block_GrowthChamber = null;
+		public static ComposterBlock block_Composter = null;
 		public static PneumaticMotor item_PneumaticMotor = null;
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
@@ -194,11 +176,11 @@ public class BasicMachines {
 
 			blockID = config.get("Blocks","blockID_growthChamber", getNextBlockID(++blockID)).getInt();
 			blockID_growthChamber = blockID;
-		//	block_GrowthChamber = new GrowthChamberBlock(blockID_growthChamber);
+			block_GrowthChamber = new GrowthChamberBlock(blockID_growthChamber);
 			
 			blockID = config.get("Blocks","blockID_composter", getNextBlockID(++blockID)).getInt();
 			blockID_composter = blockID;
-		//	block_Composter = new ComposterBlock(blockID_composter);
+			block_Composter = new ComposterBlock(blockID_composter);
 			
 			int itemID = blockID+256;
 			itemID = config.get("Items","itemID_pneumaticMotor", getNextItemID(++itemID)).getInt();
@@ -228,6 +210,10 @@ public class BasicMachines {
 			itemID_oilcan_fuel = itemID;
 			item_OilCan_empty = new OilCanEmpty(itemID_oilcan_empty);
 			
+			// TODO: config for rotting mass and compost items
+			
+			// TODO: config for growth chamber patterns
+			// TODO: config for compostable items 
 			
 			MJperChargeUnit = (float)config.get("Options", "MJ_per_charge_unit", MJperChargeUnit,
 					"Energy use efficiency of the Charger block expressed as MJ of energy per charge unit. " +
@@ -278,6 +264,8 @@ public class BasicMachines {
 			GameRegistry.registerTileEntity(ChargerTileEntity.class, "chargerTileEntity");
 			GameRegistry.registerTileEntity(LightBoxTileEntity.class, "lightBoxTileEntity");
 			GameRegistry.registerTileEntity(OilLampTileEntity.class, "oilLampTileEntity");
+			GameRegistry.registerTileEntity(ComposterTileEntity.class, "composterTileEntity");
+			GameRegistry.registerTileEntity(GrowthChamberTileEntity.class, "growthChamberTileEntity");
 
 			//Register the guis
 			NetworkRegistry.instance().registerGuiHandler(this, new BasicMachinesGUIHandler());
@@ -345,6 +333,19 @@ public class BasicMachines {
 			craft = new ItemStack(block_OilLampOff);
 			GameRegistry.addRecipe(craft, " g ","lfl"," b ",'f',block_BasicMachineFrame,'b',Item.bucketEmpty, 'g',Item.flintAndSteel,'l',Block.thinGlass);
 			
+			block_GrowthChamber.setUnlocalizedName("basicmachines.growthChamber");
+			LanguageRegistry.addName(block_GrowthChamber, "Growth Chamber");
+			GameRegistry.registerBlock(block_GrowthChamber,"basicmachines.growthChamber");
+			craft = new ItemStack(block_GrowthChamber);
+			GameRegistry.addRecipe(craft, " L ","tbt"," p ",'b',block_BasicMachineFrame,'L',block_LightBoxOff,'t',buildcraft.BuildCraftFactory.tankBlock,'p',Block.flowerPot);
+
+			block_Composter.setUnlocalizedName("basicmachines.composter");
+			LanguageRegistry.addName(block_Composter, "Composter");
+			GameRegistry.registerBlock(block_Composter,"basicmachines.composter");
+			craft = new ItemStack(block_Composter);
+			GameRegistry.addRecipe(craft, " h ","ibi"," f ",'b',block_BasicMachineFrame,'h',Block.hopperBlock,'i',Item.ingotIron,'f',Block.furnaceIdle);
+			
+			// TODO: add rotting sludge and compost items
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");
 			LanguageRegistry.addName(item_PneumaticMotor, "Pneumatic Motor");
