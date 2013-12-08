@@ -41,7 +41,7 @@ public class StorageCellTileEntity  extends TileEntity implements  IPowerRecepto
 		super();
 		inputHandler = new PowerHandler(this,PowerHandler.Type.STORAGE);
 		inputHandler.configure(minimumChargeCurrent, maxCurrent, minimumChargeCurrent, inputChargeBufferSize);
-		inputHandler.configurePowerPerdition(1, 100);
+		inputHandler.configurePowerPerdition(1, 100); // lowest perdition allowed
 		
 		
 	}

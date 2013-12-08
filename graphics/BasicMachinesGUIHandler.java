@@ -56,8 +56,7 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 		case 4:
 			// growth chamber
 			if(tileEntity instanceof GrowthChamberTileEntity){
-				// TODO 
-			//	return new GrowthChamberContainer(player.inventory, (GrowthChamberTileEntity)tileEntity);
+				return new GrowthChamberContainer(player.inventory, (GrowthChamberTileEntity)tileEntity);
 			}
 		case 5:
 			// composter
@@ -118,8 +117,7 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 		case 4:
 			// growth chamber
 			if(tileEntity instanceof GrowthChamberTileEntity){
-				// TODO 
-			//	return new GrowthChamberGUI(player.inventory, (GrowthChamberTileEntity)tileEntity);
+				return new GrowthChamberGUI(player.inventory, (GrowthChamberTileEntity)tileEntity);
 			}
 		case 5:
 			// composter

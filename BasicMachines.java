@@ -6,11 +6,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import buildcraft.api.power.PowerHandler;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.Configuration;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.Fluid;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Loader;
@@ -19,6 +23,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -52,7 +57,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.5.2")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.6.0")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -108,7 +113,7 @@ public class BasicMachines {
 		public static int pneumaticEnergyCapacity = 1024;
 		public static float MJperChargeUnit = 8f;
 		
-		public static float storageCellCapacity = 5000f;
+		public static float storageCellCapacity = 10000f;
 		
 		public static Set<Integer> additionalRechargableItemIDs = new java.util.HashSet<Integer>();
 		 
@@ -125,13 +130,19 @@ public class BasicMachines {
 		public static ResourceLocation material_lampglass = null;
 		
 		
-		
 		// mod compatibility
 		public boolean mod_BCTools = false; 
+		
+		
+
+	    // Constants
+	    public static final int DEFAULT_PERDITION_DRAIN = 1;
+	    public static final int DEFAULT_PERDITION_INTERVAL = 20;
 		
 		// Mark this method for receiving an FMLEvent (in this case, it's the FMLPreInitializationEvent)
 	    @EventHandler public void preInit(FMLPreInitializationEvent event)
 	    {
+	    	
 	        // Do stuff in pre-init phase (read config, create blocks and items, register them)
 	    	Configuration config = new Configuration(event.getSuggestedConfigurationFile());
 	    	
@@ -238,7 +249,20 @@ public class BasicMachines {
 					}
 				}
 			}
+			String plantGrowthFormulas = config.get("Options", "additional_growthchamber_formulas", 
+					"37=37+37,38=38+38,81=81+81,83=83+83,106=106+106,111=111+111,31=31+31",
+					"Additional formulas for growing plants in the growth chamber machine block. Each formula must " +
+					"be in the format seed=result1+result2+result3+... where "+
+					"seed is the itemID of the seed item and each result is an itemID of an item "+
+					"created by growing the seed. For example, to make a carrot grow into 2 carrots, the "+
+					"formula is 391=391+391 and to make a watermelon seed become a watermelon block, the "+
+					"formula is 362=103").getString();
+			String[] formulas = plantGrowthFormulas.trim().split(",");
+			for(String f : formulas){
+				PlantGrowthFormulaRegistry.getInstance().addPlantGrowthFormula(f);
+			}
 			
+			// done with config file
 			config.save();
 			 
 			// set resource locations
@@ -248,6 +272,8 @@ public class BasicMachines {
 			oilLampGUILayer = new ResourceLocation("basicmachines:textures/gui/oillamp.png");
 			material_lampmetal = new ResourceLocation("basicmachines:textures/model/lamp_metal.png");
 			material_lampglass = new ResourceLocation("basicmachines:textures/model/lamp_glass.png");
+			growthChamberGUILayer = new ResourceLocation("basicmachines:textures/gui/growthchamber.png");
+			composterGUILayer = new ResourceLocation("basicmachines:textures/gui/composter.png");
 	    }
 	    
 	    
@@ -271,7 +297,18 @@ public class BasicMachines {
 			NetworkRegistry.instance().registerGuiHandler(this, new BasicMachinesGUIHandler());
 			NetworkRegistry.instance().registerChannel(new PacketHandler(), "BasicMachines", Side.SERVER);
 		
-	
+			// plant growth chamber formulas
+			PlantGrowthFormulaRegistry plantReg = PlantGrowthFormulaRegistry.getInstance();
+			plantReg.addPlantGrowthFormula(Item.appleRed,new ItemStack(Block.sapling));
+			plantReg.addPlantGrowthFormula(Block.mushroomBrown, Block.mushroomBrown, Block.mushroomBrown);
+			plantReg.addPlantGrowthFormula(Block.mushroomRed, Block.mushroomRed, Block.mushroomRed);
+			plantReg.addPlantGrowthFormula(Item.seeds, Item.wheat);
+			plantReg.addPlantGrowthFormula(Item.wheat, Item.seeds,Item.seeds,Item.seeds);
+			plantReg.addPlantGrowthFormula(Item.carrot, Item.carrot, Item.carrot);
+			plantReg.addPlantGrowthFormula(Item.potato, Item.potato, Item.potato);
+			plantReg.addPlantGrowthFormula(Item.melonSeeds, new ItemStack(Block.melon));
+			plantReg.addPlantGrowthFormula(Item.pumpkinSeeds, new ItemStack(Block.pumpkin));
+			
 			// language registry and crafting recipes 
 			block_BasicMachineFrame.setUnlocalizedName("basicmachines.basicMachineFrame");
 			LanguageRegistry.addName(block_BasicMachineFrame, "Basic Machine Frame");
@@ -337,7 +374,7 @@ public class BasicMachines {
 			LanguageRegistry.addName(block_GrowthChamber, "Growth Chamber");
 			GameRegistry.registerBlock(block_GrowthChamber,"basicmachines.growthChamber");
 			craft = new ItemStack(block_GrowthChamber);
-			GameRegistry.addRecipe(craft, " L ","tbt"," p ",'b',block_BasicMachineFrame,'L',block_LightBoxOff,'t',buildcraft.BuildCraftFactory.tankBlock,'p',Block.flowerPot);
+			GameRegistry.addRecipe(craft, " L ","tbt"," p ",'b',block_BasicMachineFrame,'L',block_LightBoxOff,'t',buildcraft.BuildCraftFactory.tankBlock,'p',Item.flowerPot);
 
 			block_Composter.setUnlocalizedName("basicmachines.composter");
 			LanguageRegistry.addName(block_Composter, "Composter");
@@ -404,6 +441,13 @@ public class BasicMachines {
 				   }
 			}
 		}
+	    
+	 // Mark this method for receiving an FMLEvent (in this case, it's the FMLPreInitializationEvent)
+	    @EventHandler public void postInit(FMLPostInitializationEvent event)
+	    {
+	    	// stuff to do after initialization
+	    }
+	    
 	    /**
 	     * Adds a new Oil Can item for a given fluid.
 	     * @param itemID

@@ -107,7 +107,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 				}
 			}
 		} else if (stackOut != null) {
-			if (FluidContainerRegistry.isEmptyContainer(stackOut) && this.getFillLevel() >= FluidContainerRegistry.BUCKET_VOLUME) {
+			if (FluidContainerRegistry.isEmptyContainer(stackOut) && stackOut.stackSize == 1 && this.getFillLevel() >= FluidContainerRegistry.BUCKET_VOLUME) {
 				ItemStack result = FluidContainerRegistry
 						.fillFluidContainer(tank.drain(
 								FluidContainerRegistry.BUCKET_VOLUME, false),
@@ -156,7 +156,7 @@ public class OilLampTileEntity extends TileEntity implements  ISidedInventory, I
 				}
 				burnTime = lampBurnTimeFactor * currentFuel.totalBurningTime
 						/ FluidContainerRegistry.BUCKET_VOLUME;
-FMLLog.fine(this.getClass().getCanonicalName() + ": "+ " consuming 1 " + fuel.getFluid().getName() + " ("+ currentFuel.totalBurningTime+ " ticks per unit) to burn for another " + burnTime+ " ticks");
+//FMLLog.fine(this.getClass().getCanonicalName() + ": "+ " consuming 1 " + fuel.getFluid().getName() + " ("+ currentFuel.totalBurningTime+ " ticks per unit) to burn for another " + burnTime+ " ticks");
 			} else {
 				currentFuel = null;
 				return;

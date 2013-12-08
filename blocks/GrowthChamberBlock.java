@@ -17,7 +17,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -142,7 +141,7 @@ public class GrowthChamberBlock extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(World world) {
-		return new IronFurnaceTileEntity();
+		return new GrowthChamberTileEntity();
 	}
 	
 	/**
@@ -156,9 +155,9 @@ public class GrowthChamberBlock extends BlockContainer {
         }
         else
         {
-        	GrowthChamberTileEntity tileentityfurnace = (GrowthChamberTileEntity)world.getBlockTileEntity(x, y, z);
+        	GrowthChamberTileEntity tileentity = (GrowthChamberTileEntity)world.getBlockTileEntity(x, y, z);
 
-            if (tileentityfurnace != null)
+            if (tileentity != null)
             {
                 player.openGui(BasicMachines.instance, 4, world, x, y, z);
             }
@@ -196,7 +195,7 @@ public class GrowthChamberBlock extends BlockContainer {
 
         if (par6ItemStack.hasDisplayName())
         {
-            ((IronFurnaceTileEntity)par1World.getBlockTileEntity(par2, par3, par4)).setGuiDisplayName(par6ItemStack.getDisplayName());
+            ((GrowthChamberTileEntity)par1World.getBlockTileEntity(par2, par3, par4)).setGuiDisplayName(par6ItemStack.getDisplayName());
         }
     }
     
@@ -282,9 +281,9 @@ public class GrowthChamberBlock extends BlockContainer {
     @Override public int getComparatorInputOverride(World w, int x, int y, int z, int meta)
     {
     	TileEntity e = w.getBlockTileEntity(x, y, z);
-    	if(e instanceof IronFurnaceTileEntity){
-    		IronFurnaceTileEntity tile = (IronFurnaceTileEntity)e;
-    			return ((int)(15 * tile.getInputStackSize() / 64)) & 0x0F;
+    	if(e instanceof GrowthChamberTileEntity){
+    		GrowthChamberTileEntity tile = (GrowthChamberTileEntity)e;
+    			return tile.getComparatorOutput();
     	}
     	return 0;
     }

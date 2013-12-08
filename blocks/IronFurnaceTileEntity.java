@@ -12,6 +12,7 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import cyano.basicmachines.BasicMachines;
 import buildcraft.api.power.IPowerReceptor;
 import buildcraft.api.power.PowerHandler;
 import buildcraft.api.power.PowerHandler.PowerReceiver;
@@ -87,6 +88,7 @@ public class IronFurnaceTileEntity extends TileEntity implements  IPowerReceptor
     public IronFurnaceTileEntity(){
     	powerHandler = new PowerHandler(this, Type.MACHINE);
     	powerHandler.configure(minPowerUsage, maxPowerUsage, minPowerUsage, maxPowerUsage*20);
+    	powerHandler.configurePowerPerdition(BasicMachines.DEFAULT_PERDITION_DRAIN, BasicMachines.DEFAULT_PERDITION_INTERVAL);
     	powerHandlerDummy = new PowerHandler(this, Type.MACHINE);
     	powerHandlerDummy.configure(0, 0, 0, 0);
     }

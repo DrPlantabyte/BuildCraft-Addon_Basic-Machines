@@ -74,8 +74,8 @@ public class OilLampContainer extends Container {
                         return null;
                     }
                 } else if (entity.isItemValidForSlot(1, itemstack)) {
-                	// stick it in the input slot
-                    if (!this.mergeItemStack(itemstack1, 1, 1, false)) {
+                	// stick it in the output slot
+                    if (!this.mergeItemStack(itemstack1, 1, 2, false)) {
                         return null;
                     }
                 } else if (slotIndex >= 2 && slotIndex < (inventorySlots.size() - 9)) {
