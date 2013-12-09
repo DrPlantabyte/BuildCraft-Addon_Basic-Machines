@@ -177,13 +177,16 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 			// first, collect a shuffled list of available spaces, not including the target
 			if(size2 > 1){emptyIndices = shuffle(emptyIndices,size2);}
 			// next, remove the seed and add its empty space to the beginning of the list of empty spaces
-			inventory[targetIndex] = null;
-			emptyIndices[size2] = emptyIndices[0];
-			size2++;
-			emptyIndices[0] = targetIndex;
+			this.decrStackSize(targetIndex, 1);
+			if(inventory[targetIndex] == null){
+				emptyIndices[size2] = emptyIndices[0];
+				size2++;
+				emptyIndices[0] = targetIndex;
+			}
 			// now put the results into the empty slots until there's no room or no items left, starting with the seed's space
 			for(int i = 0; i < results.length && i < emptyIndices.length; i++){
 				inventory[emptyIndices[i]] = ItemStack.copyItemStack(results[i]);
+				inventory[emptyIndices[i]].stackSize = 1;
 			}
 		} else if(PlantGrowthFormulaRegistry.getInstance().isGenericPlant(seed)){
 			// generic plant replication
