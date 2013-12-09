@@ -43,11 +43,11 @@ Machines: (in order of priority)
 + Iron Furnace - Buildcraft powered furnace
 + Energy Cell - Stores buildcraft energy (top+bottom=input, sides=output)
 + Charger - Recharge items that use buildcraft energy
-- Sorter - uses a filter to divert specific items
+X Sorter - uses a filter to divert specific items - canceled
 + Light Box - Buildcraft powered torch
-- Lamp - Oil-powered torch
-- Growth Chamber
-- Composter
++ Lamp - Oil-powered torch
++ Growth Chamber
++ Composter
 Tools: All have max capacity of 1024 MJ, but use different amounts of energy per action
 + Pneumatic Hammer - Buildcraft powered pickaxe
 + Pneumatic Saw - Buildcraft powered axe
@@ -57,7 +57,7 @@ Other Items:
 + Pneumatic Motor - crafting component
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="0.6.0")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="1.0.0")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.
@@ -82,6 +82,8 @@ public class BasicMachines {
 		public static int blockID_growthChamber;
 		public static int blockID_composter;
 
+		public static int itemID_rottingMass;
+		public static int itemID_compost;
 		public static int itemID_pneumaticMotor;
 		public static int itemID_pneumaticHammer;
 		public static int itemID_pneumaticSaw;
@@ -107,6 +109,8 @@ public class BasicMachines {
 		public static PneumaticHammer item_PneumaticHammer = null;
 		public static PneumaticSaw item_PneumaticSaw = null;
 		public static PneumaticGun item_PneumaticGun = null;
+		public static Compost item_Compost = null;
+		public static RottingMass item_RottingMass = null;
 		public static OilCanEmpty item_OilCan_empty = null;
 		public static Map<Fluid, OilCan> oilCanItems = new HashMap<Fluid, OilCan>();
 		
@@ -116,7 +120,9 @@ public class BasicMachines {
 		public static float storageCellCapacity = 10000f;
 		
 		public static Set<Integer> additionalRechargableItemIDs = new java.util.HashSet<Integer>();
-		 
+		
+		public static boolean autodetect_plant_formulas = true;
+		
 		// graphics resources
 
 		public static ResourceLocation ironFurnaceGUILayer = null;
@@ -207,6 +213,12 @@ public class BasicMachines {
 			itemID = config.get("Items","itemID_pneumaticGun", getNextItemID(++itemID)).getInt();
 			itemID_pneumaticGun = itemID;
 			item_PneumaticGun = new PneumaticGun(itemID_pneumaticGun);
+			itemID = config.get("Items","itemID_compost", getNextItemID(++itemID)).getInt();
+			itemID_compost = itemID;
+			item_Compost = new Compost(itemID_compost);
+			itemID = config.get("Items","itemID_rottingMass", getNextItemID(++itemID)).getInt();
+			itemID_rottingMass = itemID;
+			item_RottingMass = new RottingMass(itemID_rottingMass);
 			
 			// oil cans
 			itemID = config.get("Items","itemID_oilcan_empty", getNextItemID(++itemID)).getInt();
@@ -220,11 +232,6 @@ public class BasicMachines {
 			itemID = config.get("Items","itemID_oilcan_fuel", getNextItemID(++itemID)).getInt();
 			itemID_oilcan_fuel = itemID;
 			item_OilCan_empty = new OilCanEmpty(itemID_oilcan_empty);
-			
-			// TODO: config for rotting mass and compost items
-			
-			// TODO: config for growth chamber patterns
-			// TODO: config for compostable items 
 			
 			MJperChargeUnit = (float)config.get("Options", "MJ_per_charge_unit", MJperChargeUnit,
 					"Energy use efficiency of the Charger block expressed as MJ of energy per charge unit. " +
@@ -249,6 +256,12 @@ public class BasicMachines {
 					}
 				}
 			}
+			
+			autodetect_plant_formulas = config.get("Options", "autodetect_growthchamber_formulas",true,"If true, " +
+					"then all plantable blocks and items (as far as this mod can determine) will be growable in " +
+					"the growth chamber. Items and blocks from other mods are not guarenteed to be detected as there " +
+					"is no 'plant' superclass.").getBoolean(true); 
+			
 			String plantGrowthFormulas = config.get("Options", "additional_growthchamber_formulas", 
 					"37=37+37,38=38+38,81=81+81,83=83+83,106=106+106,111=111+111,31=31+31",
 					"Additional formulas for growing plants in the growth chamber machine block. Each formula must " +
@@ -256,10 +269,20 @@ public class BasicMachines {
 					"seed is the itemID of the seed item and each result is an itemID of an item "+
 					"created by growing the seed. For example, to make a carrot grow into 2 carrots, the "+
 					"formula is 391=391+391 and to make a watermelon seed become a watermelon block, the "+
-					"formula is 362=103").getString();
+					"formula is 362=103. You can specify metadata with a colon (e.g. 144=144+159:3)").getString();
 			String[] formulas = plantGrowthFormulas.trim().split(",");
 			for(String f : formulas){
-				PlantGrowthFormulaRegistry.getInstance().addPlantGrowthFormula(f);
+				PlantGrowthFormulaRegistry.getInstance().addEntry(f);
+			}
+			
+			String compostableList = config.get("Options", "additional_compostable_items", 
+					"349,400,351:0,351:1,351:2,351:3,351:11,351:15",
+					"Additional compostable items. You can put either specify the item by " +
+					"ID:metadata or just an itemID and make all forms of that item " +
+					"compostable, regardless of the metadata value.").getString();
+			String[] compostables = compostableList.split(",");
+			for(String c : compostables){
+				CompostablesRegistry.getInstance().addEntry(c);
 			}
 			
 			// done with config file
@@ -299,15 +322,21 @@ public class BasicMachines {
 		
 			// plant growth chamber formulas
 			PlantGrowthFormulaRegistry plantReg = PlantGrowthFormulaRegistry.getInstance();
-			plantReg.addPlantGrowthFormula(Item.appleRed,new ItemStack(Block.sapling));
-			plantReg.addPlantGrowthFormula(Block.mushroomBrown, Block.mushroomBrown, Block.mushroomBrown);
-			plantReg.addPlantGrowthFormula(Block.mushroomRed, Block.mushroomRed, Block.mushroomRed);
-			plantReg.addPlantGrowthFormula(Item.seeds, Item.wheat);
-			plantReg.addPlantGrowthFormula(Item.wheat, Item.seeds,Item.seeds,Item.seeds);
-			plantReg.addPlantGrowthFormula(Item.carrot, Item.carrot, Item.carrot);
-			plantReg.addPlantGrowthFormula(Item.potato, Item.potato, Item.potato);
-			plantReg.addPlantGrowthFormula(Item.melonSeeds, new ItemStack(Block.melon));
-			plantReg.addPlantGrowthFormula(Item.pumpkinSeeds, new ItemStack(Block.pumpkin));
+			plantReg.addEntry(new ItemStack(Item.appleRed),new ItemStack(Block.sapling));
+			plantReg.addEntry(new ItemStack(Block.mushroomBrown), new ItemStack(Block.mushroomBrown), new ItemStack(Block.mushroomBrown));
+			plantReg.addEntry(new ItemStack(Block.mushroomRed), new ItemStack(Block.mushroomRed), new ItemStack(Block.mushroomRed));
+			plantReg.addEntry(new ItemStack(Item.seeds), new ItemStack(Item.wheat));
+			plantReg.addEntry(new ItemStack(Item.wheat), new ItemStack(Item.seeds),new ItemStack(Item.seeds),new ItemStack(Item.seeds));
+			plantReg.addEntry(new ItemStack(Item.carrot), new ItemStack(Item.carrot), new ItemStack(Item.carrot));
+			plantReg.addEntry(new ItemStack(Item.potato), new ItemStack(Item.potato), new ItemStack(Item.potato));
+			plantReg.addEntry(new ItemStack(Item.melonSeeds), new ItemStack(Block.melon));
+			plantReg.addEntry(new ItemStack(Item.pumpkinSeeds), new ItemStack(Block.pumpkin));
+			
+			// register compostable items
+			CompostablesRegistry compReg = CompostablesRegistry.getInstance();
+			compReg.addEntry(net.minecraft.item.Item.rottenFlesh);
+			compReg.addEntry(net.minecraft.item.Item.slimeBall);
+			// food items are added to registry in post-init
 			
 			// language registry and crafting recipes 
 			block_BasicMachineFrame.setUnlocalizedName("basicmachines.basicMachineFrame");
@@ -382,7 +411,16 @@ public class BasicMachines {
 			craft = new ItemStack(block_Composter);
 			GameRegistry.addRecipe(craft, " h ","ibi"," f ",'b',block_BasicMachineFrame,'h',Block.hopperBlock,'i',Item.ingotIron,'f',Block.furnaceIdle);
 			
-			// TODO: add rotting sludge and compost items
+		
+			
+			item_Compost.setUnlocalizedName("basicmachines.compost");
+			LanguageRegistry.addName(item_Compost, "Compost");
+			GameRegistry.registerItem(item_Compost, "basicmachines.compost");
+			
+			item_RottingMass.setUnlocalizedName("basicmachines.rottingMass");
+			LanguageRegistry.addName(item_RottingMass, "Rotting Sludge");
+			GameRegistry.registerItem(item_RottingMass, "basicmachines.rottingMass");
+			
 			
 			item_PneumaticMotor.setUnlocalizedName("basicmachines.pneumaticMotor");
 			LanguageRegistry.addName(item_PneumaticMotor, "Pneumatic Motor");
@@ -446,6 +484,32 @@ public class BasicMachines {
 	    @EventHandler public void postInit(FMLPostInitializationEvent event)
 	    {
 	    	// stuff to do after initialization
+	    	
+	    	// register compostable food items
+	    	FMLLog.info("basicmachines: Scanning for items to add to compostables regirstry...");
+	    	CompostablesRegistry compReg = CompostablesRegistry.getInstance();
+			PlantGrowthFormulaRegistry plantReg = PlantGrowthFormulaRegistry.getInstance();
+			for(int i = 1; i < Block.blocksList.length; i++){
+				if(Block.blocksList[i] != null){
+	    			Block block = Block.blocksList[i];
+	    			if(block instanceof net.minecraftforge.common.IPlantable || block instanceof net.minecraft.block.BlockFlower){
+	    				compReg.addEntry(block.blockID);
+	    				FMLLog.info("\tbasicmachines: made "+block.getUnlocalizedName()+" compostable");
+	    			}
+				}
+	    	}
+			for(int i = 1; i < Item.itemsList.length; i++){
+	    		if(Item.itemsList[i] != null){
+	    			Item item = Item.itemsList[i];
+	    			if(item instanceof net.minecraft.item.ItemFood){
+	    				compReg.addEntry(item);
+	    				FMLLog.info("\tbasicmachines: made "+item.getUnlocalizedName()+" compostable");
+	    			} else if(item instanceof net.minecraftforge.common.IPlantable){
+	    				compReg.addEntry(item);
+	    				FMLLog.info("\tbasicmachines: made "+item.getUnlocalizedName()+" compostable");
+	    			}
+	    		}
+	    	}
 	    }
 	    
 	    /**

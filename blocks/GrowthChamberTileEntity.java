@@ -103,7 +103,9 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 				// check if there are even plants in the chamber
 				boolean plantsPresent = false;
 				for(int s = 0; s < 9; s++){
-					if(inventory[s] != null && PlantGrowthFormulaRegistry.getInstance().hasFormula(inventory[s])){
+					if(inventory[s] != null 
+							&& (PlantGrowthFormulaRegistry.getInstance().isRegistered(inventory[s])
+									|| PlantGrowthFormulaRegistry.getInstance().isGenericPlant(inventory[s]))){
 						plantsPresent = true; 
 						break;
 					}
@@ -170,10 +172,10 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 		}
 		int targetIndex = filledIndices[worldObj.rand.nextInt(size1)];
 		ItemStack seed = inventory[targetIndex];
-		if(PlantGrowthFormulaRegistry.getInstance().hasFormula(seed)){
+		if(PlantGrowthFormulaRegistry.getInstance().isRegistered(seed)){
 			ItemStack[] results = PlantGrowthFormulaRegistry.getInstance().growPlant(seed);
 			// first, collect a shuffled list of available spaces, not including the target
-			emptyIndices = shuffle(emptyIndices);
+			if(size2 > 1){emptyIndices = shuffle(emptyIndices,size2);}
 			// next, remove the seed and add its empty space to the beginning of the list of empty spaces
 			inventory[targetIndex] = null;
 			emptyIndices[size2] = emptyIndices[0];
@@ -183,19 +185,24 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 			for(int i = 0; i < results.length && i < emptyIndices.length; i++){
 				inventory[emptyIndices[i]] = ItemStack.copyItemStack(results[i]);
 			}
+		} else if(PlantGrowthFormulaRegistry.getInstance().isGenericPlant(seed)){
+			// generic plant replication
+			if(size2 > 0){
+				inventory[emptyIndices[worldObj.rand.nextInt(size2)]] = ItemStack.copyItemStack(seed);
+			}
 		}
 	}
 	
-	private int[] shuffle(int[] src){
+	private int[] shuffle(int[] src, int size){
 		int[] output = new int[src.length];
 		boolean[] set = new boolean[src.length];
 		java.util.Arrays.fill(set, false);
-		int range = worldObj.rand.nextInt(src.length);
-		for(int i = 0; i < src.length; i++){
-			int index = range % output.length;
+		int range = worldObj.rand.nextInt(size);
+		for(int i = 0; i < size; i++){
+			int index = range % size;
 			while(set[index]){
 				range += 7691; // 7691 is a prime number
-				index = range % output.length;
+				index = range % size;
 			}
 			output[index] = src[i];
 			set[index] = true;
@@ -296,7 +303,26 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
         return new Packet132TileEntityData(this.xCoord, this.yCoord, this.zCoord, 0, nbtData);
     }
 	
-	
+	/**
+     * Called when you receive a TileEntityData packet for the location this
+     * TileEntity is currently in. On the client, the NetworkManager will always
+     * be the remote server. On the server, it will be whomever is responsible for
+     * sending the packet.
+     *
+     * @param net The NetworkManager the packet originated from
+     * @param pkt The data packet
+     */
+    @Override public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
+    {
+    	// get update from server
+    	
+	    // sanity check! Check for distinctive fields that tile entities machines won't have   
+    	if(pkt.data.hasKey("Energy") && pkt.data.hasKey("Work") && pkt.data.hasKey("Time")){
+    		// load data
+    		this.readFromNBT(pkt.data);
+    	}
+	}
+    
 	private boolean handleFluidSlots(){
 		boolean flagChange = false;
 		ItemStack stackIn = inventory[waterInputInvIndex];
@@ -331,25 +357,7 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 		return flagChange;
 	}
 	
-	/**
-     * Called when you receive a TileEntityData packet for the location this
-     * TileEntity is currently in. On the client, the NetworkManager will always
-     * be the remote server. On the server, it will be whomever is responsible for
-     * sending the packet.
-     *
-     * @param net The NetworkManager the packet originated from
-     * @param pkt The data packet
-     */
-    @Override public void onDataPacket(INetworkManager net, Packet132TileEntityData pkt)
-    {
-    	// get update from server
-    	
-	    // sanity check! Check for distinctive fields that tile entities machines won't have   
-    	if(pkt.data.hasKey("Energy") && pkt.data.hasKey("Work") && pkt.data.hasKey("Time")){
-    		// load data
-    		this.readFromNBT(pkt.data);
-    	}
-	}
+	
 	
 	@Override public int getSizeInventory() {
 		return inventory.length;

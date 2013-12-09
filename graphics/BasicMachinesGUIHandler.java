@@ -61,8 +61,7 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 		case 5:
 			// composter
 			if(tileEntity instanceof ComposterTileEntity){
-				// TODO 
-			//	return new ComposterContainer(player.inventory, (ComposterTileEntity)tileEntity);
+				return new ComposterContainer(player.inventory, (ComposterTileEntity)tileEntity);
 			}
 		
 		}
@@ -122,8 +121,7 @@ public class BasicMachinesGUIHandler implements IGuiHandler {
 		case 5:
 			// composter
 			if(tileEntity instanceof ComposterTileEntity){
-				// TODO 
-			//	return new ComposterGUI(player.inventory, (ComposterTileEntity)tileEntity);
+				return new ComposterGUI(player.inventory, (ComposterTileEntity)tileEntity);
 			}
 		}
 		return null;

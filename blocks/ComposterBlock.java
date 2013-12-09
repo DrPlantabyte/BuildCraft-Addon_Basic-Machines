@@ -17,7 +17,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -156,11 +155,10 @@ public class ComposterBlock extends BlockContainer {
      */
     @Override public int getComparatorInputOverride(World w, int x, int y, int z, int meta)
     {
-    	// TODO
     	TileEntity e = w.getBlockTileEntity(x, y, z);
     	if(e instanceof ComposterTileEntity){
     		ComposterTileEntity tile = (ComposterTileEntity)e;
-    			return 0;//((int)(15 * tile.getOutputStackSize() / 64)) & 0x0F;
+    			return tile.getComparatorOutput();
     	}
     	return 0;
     }

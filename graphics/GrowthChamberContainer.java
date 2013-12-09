@@ -5,11 +5,13 @@ import cyano.basicmachines.PlantGrowthFormulaRegistry;
 import cyano.basicmachines.blocks.ChargerTileEntity;
 import cyano.basicmachines.blocks.GrowthChamberTileEntity;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFlower;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -99,26 +101,14 @@ public class GrowthChamberContainer extends Container{
             				GrowthChamberTileEntity.waterOutputInvIndex+1, false)) {
                         return null;
                     }
-            	} else if(PlantGrowthFormulaRegistry.getInstance().hasFormula(itemstack1)){
+            	} else if(PlantGrowthFormulaRegistry.getInstance().isRegistered(itemstack1) || PlantGrowthFormulaRegistry.getInstance().isGenericPlant(itemstack1)){
             		// IT'S A PLANT!!!
             		if (!this.mergeItemStack(itemstack1, 0, 9, false)) {
                         return null;
                     }
             	} else {
             		// there's nowhere to put it in the machine
-            	/*	if(slotIndex >= inventorySlots.size() - 9){
-            			// it is in player's hotbar, move to player's inventory
-            			if (!this.mergeItemStack(itemstack1, entity.getSizeInventory(), 
-            					inventorySlots.size() - 9, false)) {
-                            return null;
-                        }
-            		} else {
-            			// put it in th eplayer's hotbar
-            			if (!this.mergeItemStack(itemstack1, inventorySlots.size() - 9, 
-            					inventorySlots.size(), true)) {
-                            return null;
-                        }
-            		}*/
+            	
             	}
             }
 
