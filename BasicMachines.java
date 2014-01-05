@@ -37,27 +37,12 @@ import cyano.basicmachines.items.*;
 
 
 /*
- * TODO list
- BuildCraft Basics Addon
-Machines: (in order of priority)
-+ Iron Furnace - Buildcraft powered furnace
-+ Energy Cell - Stores buildcraft energy (top+bottom=input, sides=output)
-+ Charger - Recharge items that use buildcraft energy
-X Sorter - uses a filter to divert specific items - canceled
-+ Light Box - Buildcraft powered torch
-+ Lamp - Oil-powered torch
-+ Growth Chamber
-+ Composter
-Tools: All have max capacity of 1024 MJ, but use different amounts of energy per action
-+ Pneumatic Hammer - Buildcraft powered pickaxe
-+ Pneumatic Saw - Buildcraft powered axe
-+ Pneumatic Gun - Buildcraft powered bow
-Other Items:
-+ Basic Machine Frame - crafting component
-+ Pneumatic Motor - crafting component
+ * TODO list:
+ * - update to 1.7
+ * - add Fertilizer Spreader tool to fertilize in a large area
  */
 
-@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="1.0.0")
+@Mod(modid="basicmachines", name="Cyano's Basic Machines for BuildCraft", version="1.0.1")
 @NetworkMod(clientSideRequired=true, serverSideRequired=false)
 public class BasicMachines {
 	// The instance of your mod that Forge uses.

@@ -78,6 +78,8 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
     	powerHandlerDummy.configure(0, 0, 0, 0);
 	}
 	
+	float oldPower = 0;
+	int oldWater = 0;
 	@Override public void updateEntity(){
 		// Meat and potatoes
 		if (this.worldObj.isRemote){
@@ -90,6 +92,16 @@ public class GrowthChamberTileEntity extends TileEntity implements IPowerRecepto
 		powerHandler.update();
 		
 		boolean flagChange = handleFluidSlots();
+		
+		if(timer % 8 == 0){
+			if(powerHandler.getEnergyStored() != oldPower){
+				oldPower = powerHandler.getEnergyStored();
+				flagChange = true;
+			} else if(tank.getFluidAmount() != oldWater){
+				oldWater = tank.getFluidAmount();
+				flagChange = true;
+			}
+		}
 		
 		timer = (timer + 1)%ticksPerWorkUnit;
 		if(timer == 0){

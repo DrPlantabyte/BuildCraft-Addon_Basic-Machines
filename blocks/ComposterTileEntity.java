@@ -68,6 +68,8 @@ public class ComposterTileEntity extends TileEntity implements  IPowerReceptor, 
     	powerHandlerDummy.configure(0, 0, 1, 0);
 	}
 	
+	float oldPower = 0;
+	
 	@Override public void updateEntity(){
 		// Meat and potatoes
 		if (this.worldObj.isRemote){
@@ -98,7 +100,12 @@ public class ComposterTileEntity extends TileEntity implements  IPowerReceptor, 
 				}
 			}
 		}
-		
+		if(timer % 8 == 0){
+			if(powerHandler.getEnergyStored() != oldPower){
+				oldPower = powerHandler.getEnergyStored();
+				flagChange = true;
+			}
+		}
 		timer = (timer + 1)%TICKS_PER_UPDATE;
 		if(timer == 0){
 			redstoneSignal = getWorld().getBlockPowerInput(this.xCoord,	this.yCoord, this.zCoord);
